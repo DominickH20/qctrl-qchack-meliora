@@ -269,10 +269,16 @@ print("H Gate Error: " + str(h_error))
 
 # In[9]:
 
+# Normalizing the amplitudes
+absolutes = []
+for val in optimized_values:
+    absolutes += [np.absolute(val)]
+max_amp = max(absolutes)
+
 # Write parameters to file
-with open("reals.txt", "w") as real_f:
+with open("amplitude.txt", "w") as amplitude_f:
+    for val in absolutes:
+        amplitude_f.write("{}\n".format(val / max_amp))
+with open("phase.txt", "w") as phase_f:
     for val in optimized_values:
-        real_f.write("{}\n".format(val.real))
-with open("imag.txt", "w") as imag_f:
-    for val in optimized_values:
-        imag_f.write("{}\n".format(val.imag))
+        phase_f.write("{}\n".format(np.angle(val)))

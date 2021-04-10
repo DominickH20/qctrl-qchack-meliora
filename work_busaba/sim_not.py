@@ -268,3 +268,19 @@ print(realized_not_gate)
 print("Ideal NOT Gate:")
 print(ideal_not_gate)
 print("NOT Gate Error: " + str(not_error))
+
+# In[9]:
+
+# Normalizing the amplitudes
+absolutes = []
+for val in optimized_values:
+    absolutes += [np.absolute(val)]
+max_amp = max(absolutes)
+
+# Write parameters to file
+with open("amplitude.txt", "w") as amplitude_f:
+    for val in absolutes:
+        amplitude_f.write("{}\n".format(val / max_amp))
+with open("phase.txt", "w") as phase_f:
+    for val in optimized_values:
+        phase_f.write("{}\n".format(np.angle(val)))
