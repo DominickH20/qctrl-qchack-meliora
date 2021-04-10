@@ -1,0 +1,39 @@
+NOT Gate works as usual
+Hadamard gate maps state (0 or 1) to a superposition state (different notation for mapped 0 vs 1)
+ - represented by the Hadamard matrix
+
+Matrices for these gates are defined in the challenge doc
+ - we can choose any theta, but it must remain the same across both gates
+ - normally theta = 0
+ - phi1 phi2 are arbitrary in 0,2pi
+
+
+A Qubit is made of two basis states
+- the actual state can be any complex valued linear combination of these basis states
+- computer starts in 0 state
+
+Measurement from reading a qubit is probabilistic
+ - equal to magnitude of its weight (multiply weight by its conjugate)
+
+We can have a time dependent state of qubit
+On notation:
+ - * means conjugate
+ - t (dagger) means conjugate transpose
+
+
+Error_norm is some form of matrix difference metric
+
+real system does not have direct access to unitaries, only results of projective measurements
+We can use CLT to see from a set of trials, how many 
+
+repetition can be used to boost SIGNAL OF ERROR
+
+More realistic cubit has more errors
+ - can see list of ways the model becomes more complicated
+
+Choose one of these methods
+Optimal Control
+
+Robust Control
+
+Learning Control
