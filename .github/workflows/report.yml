@@ -1,0 +1,25 @@
+name: Compile TEX
+
+# Controls when the action will run. 
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+# Define jobs
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v1
+      - name: Compile LaTeX document
+        uses: dante-ev/latex-action@master
+        with:
+          root_file: report/main.tex
+      - name: Upload build
+        uses: actions/upload-artifact@v1
+        with:
+            name: report.pdf
+            path: report/report.pdf
