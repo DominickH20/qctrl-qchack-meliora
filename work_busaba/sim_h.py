@@ -11,21 +11,6 @@ from qctrl import Qctrl
 
 qctrl = Qctrl()
 
-# ## Accessing the qubit in the cloud (the challenge!)
-# 
-# The challenge is to create pulses that implement high fidelity Hadamard and H gates on a qubit in the cloud provided through BOULDER OPAL. Here we show you how to send pulses to the qubit in the cloud and get measurement results. 
-# 
-# In what follows we will show you how to create a series of controls (pulses), send them to the qubit in the cloud, and analyze the results of the experiment. We begin by importing some basic modules and starting a session with the BOULDER OPAL Q-CTRL API.
-# 
-# We begin by establishing some parameters for our pulses:
-# - `control_count`: How many controls we create.
-# - `segment_count`: How many segments each pulse is split into.
-# - `duration`: The duration (in ns) of each pulse.
-# - `shot_count`: How many projective measurements we take at the end of each control.
-# 
-# You will probably want to change these values later depending on how you approach the challenge. For instance, the larger the `shot_count` is, the more measurements we get out of the qubit for each control (we only keep it small here so that the experiment results are easier to visualize).
-# 
-
 # In[2]:
 
 error_norm =  lambda A, B : 1 - np.abs(np.trace((A.conj().T @ B)) / 2) ** 2
@@ -281,3 +266,13 @@ print(realized_h_gate)
 print("Ideal H Gate:")
 print(ideal_h_gate)
 print("H Gate Error: " + str(h_error))
+
+# In[9]:
+
+# Write parameters to file
+with open("reals.txt", "w") as real_f:
+    for val in optimized_values:
+        real_f.write("{}\n".format(val.real))
+with open("imag.txt", "w") as imag_f:
+    for val in optimized_values:
+        imag_f.write("{}\n".format(val.imag))
