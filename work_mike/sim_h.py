@@ -281,3 +281,13 @@ print(realized_h_gate)
 print("Ideal H Gate:")
 print(ideal_h_gate)
 print("H Gate Error: " + str(h_error))
+
+# In[9]:
+
+# Write parameters to file
+with open("amplitude.txt", "w") as amp_f:
+    for val in optimized_values:
+        amp_f.write("{}\n".format(np.absolute(val)))
+with open("phase.txt", "w") as phase_f:
+    for val in optimized_values:
+        phase_f.write("{}\n".format(np.angle(val)))
