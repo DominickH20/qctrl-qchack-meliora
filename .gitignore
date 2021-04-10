@@ -4,9 +4,11 @@
 *.log
 *.synctex.gz
 .vscode
-
-work_dom
+.vscode/*
 
 .env
 examples/.env
 work_dom/.env
+work_mike/.env
+work_ryan/.env
+work_busaba/.env
