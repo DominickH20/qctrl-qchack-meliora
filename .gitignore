@@ -3,3 +3,10 @@
 *.fls
 *.log
 *.synctex.gz
+.vscode
+
+work_dom
+
+.env
+examples/.env
+work_dom/.env
