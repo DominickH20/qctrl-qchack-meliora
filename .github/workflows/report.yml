@@ -19,9 +19,9 @@ jobs:
       - name: Compile LaTeX document
         uses: dante-ev/latex-action@master
         with:
-          root_file: report/main.tex
+          root_file: report/challenge_summary.tex
       - name: Upload build
         uses: actions/upload-artifact@v1
         with:
-            name: report.pdf
-            path: report/report.pdf
+            name: challenge_summary.pdf
+            path: report/challenge_summary.pdf
