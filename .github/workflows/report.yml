@@ -2,6 +2,8 @@ name: Compile TEX
 
 # Controls when the action will run. 
 on:
+  workflow_dispatch:
+    branches: [ $default-branch ]
   push:
     branches: [ $default-branch ]
   pull_request:
