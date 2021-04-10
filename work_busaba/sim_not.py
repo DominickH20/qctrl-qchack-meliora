@@ -261,3 +261,23 @@ plot_controls(
         "$\\Omega$": optimization_result.output["Omega"],
     }, polar=False)
 plt.show()
+
+# In[7]:
+
+# Test optimized pulse on more realistic qubit simulation
+
+optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
+result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+
+# In[8]:
+realized_not_gate = result["unitary"]
+not_error = error_norm(realized_not_gate, ideal_not_gate)
+
+not_measurements = result["measurements"]
+not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+
+print("Realised NOT Gate:")
+print(realized_not_gate)
+print("Ideal NOT Gate:")
+print(ideal_not_gate)
+print("NOT Gate Error: " + str(not_error))

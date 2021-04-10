@@ -13,7 +13,7 @@ qctrl = Qctrl()
 
 # ## Accessing the qubit in the cloud (the challenge!)
 # 
-# The challenge is to create pulses that implement high fidelity Hadamard and NOT gates on a qubit in the cloud provided through BOULDER OPAL. Here we show you how to send pulses to the qubit in the cloud and get measurement results. 
+# The challenge is to create pulses that implement high fidelity Hadamard and H gates on a qubit in the cloud provided through BOULDER OPAL. Here we show you how to send pulses to the qubit in the cloud and get measurement results. 
 # 
 # In what follows we will show you how to create a series of controls (pulses), send them to the qubit in the cloud, and analyze the results of the experiment. We begin by importing some basic modules and starting a session with the BOULDER OPAL Q-CTRL API.
 # 
@@ -234,7 +234,7 @@ with qctrl.create_graph() as graph:
     # Construct Target operator
     target_operator = qctrl.operations.target(operator=ideal_h_gate)
 
-    # Calculate infidelity between target NOT gate and final unitary
+    # Calculate infidelity between target H gate and final unitary
     indfidelity = qctrl.operations.infidelity_pwc(
         hamiltonian=hamiltonian,
         target_operator=target_operator,
@@ -261,3 +261,23 @@ plot_controls(
         "$\\Omega$": optimization_result.output["Omega"],
     }, polar=False)
 plt.show()
+
+# In[7]:
+
+# Test optimized pulse on more realistic qubit simulation
+
+optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
+result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+
+# In[8]:
+realized_h_gate = result["unitary"]
+h_error = error_norm(realized_h_gate, ideal_h_gate)
+
+h_measurements = result["measurements"]
+h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
+
+print("Realised H Gate:")
+print(realized_h_gate)
+print("Ideal H Gate:")
+print(ideal_h_gate)
+print("H Gate Error: " + str(h_error))
