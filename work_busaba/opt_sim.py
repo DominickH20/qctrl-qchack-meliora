@@ -242,3 +242,22 @@ with qctrl.create_graph() as graph:
     )
 
 # In[5]:
+
+# Optimize graph
+optimization_result = qctrl.functions.calculate_optimization(
+    cost_node_name="infidelity",
+    output_node_names=["Omega"],
+    graph=graph,
+)
+
+# In[6]:
+
+print("Infidelity of gate: " + str(optimization_result.cost))
+
+fig = plt.figure()
+plot_controls(
+    fig,
+    controls={
+        "$\\Omega$": optimization_result.output["Omega"],
+    }, polar=False)
+plt.show()
