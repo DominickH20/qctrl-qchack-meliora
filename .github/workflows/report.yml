@@ -20,8 +20,13 @@ jobs:
         uses: dante-ev/latex-action@master
         with:
           root_file: report/challenge_summary.tex
-      - name: Upload build
+      - name: Upload PDF
         uses: actions/upload-artifact@v1
         with:
             name: challenge_summary.pdf
             path: report/challenge_summary.pdf
+      - name: Copy PDF
+        uses: canastro/copy-file-action@master
+        with:
+          source: report/challenge_summary.pdf
+          target: challenge_summary.pdf
