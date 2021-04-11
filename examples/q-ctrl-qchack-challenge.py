@@ -78,7 +78,7 @@
 # If you've installed BOULDER OPAL correctly you should be able to load the packages required to run the rest of this notebook:
 
 # In[1]:
-
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -86,7 +86,10 @@ import numpy as np
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
 
-qctrl = Qctrl()
+email = os.environ.get('EMAIL')
+password = os.environ.get('PASS')
+
+qctrl = Qctrl(email=email,password=password)
 
 
 # ## Challenge background information

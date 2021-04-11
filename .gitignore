@@ -5,12 +5,20 @@
 *.synctex.gz
 .vscode
 .vscode/*
+**pycache**
 
 .env
 examples/.env
+<<<<<<< HEAD
 scratch_work/work_dom/.env
 scratch_work/work_mike/.env
 scratch_work/work_ryan/.env
 scratch_work/work_busaba/.env
 
 production_code/.env
+=======
+work_dom/.env
+work_mike/.env
+work_ryan/.env
+work_busaba/.env
+>>>>>>> 746cf1ba4ecfed26423342e6415708042ca9af43

@@ -253,7 +253,7 @@ plt.show()
 # Test optimized pulse on more realistic qubit simulation
 
 optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
-result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=4096, repetitions=7)
 
 # In[8]:
 realized_h_gate = result["unitary"]

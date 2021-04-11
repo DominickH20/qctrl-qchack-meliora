@@ -31,9 +31,9 @@ qctrl = Qctrl()
 
 max_drive_amplitude = 2 * np.pi * 20                  # MHz
 control_count = 1
-segment_count = 32
-duration = 5 * np.pi / (max_drive_amplitude) *1000   # Convert to ns
-shot_count = 1024
+segment_count = 64
+duration = 5 * np.pi / (max_drive_amplitude) * 1000   # Convert to ns
+shot_count = 4096
 
 
 # In[3]:
@@ -83,7 +83,6 @@ experiment_results = qctrl.functions.calculate_qchack_measurements(
     controls=controls,
     shot_count=shot_count,
 )
-
 
 # What we are interested in are the results of the measurements on the qubit, which are in `experiment_results.measurements`. This is a list containing, for each control that we have sent to the qubit, the result of `shot_count` measurements, that is, whether the qubit was found to be in state $|0\rangle$, $|1\rangle$, or $|2\rangle$.
 
