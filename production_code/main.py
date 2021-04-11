@@ -6,35 +6,26 @@ import numpy as np
 import real_q
 
 def main(circuit):
-    # Make sure circuit name is valid
+    # Make sure circuit name is valid and load data
     circuit = circuit.upper()
-    if circuit != "H" and circuit != "N":
+    if circuit == "H":
+        waves_list = np.load("H_START.npy")
+    elif circuit == "N":
+        waves_list = np.load("N_START.npy")
+    else:
         print("Invalid circuit ID: {}".format(circuit))
         exit(1)
-    
-    # Read starting seed
-    amplitudes = []
-    phases = []
-    with open("work_busaba/amplitude.txt", "r") as real_f:
-        for line in real_f:
-            amplitudes += [float(line.strip())]
-    with open("work_busaba/phase.txt", "r") as imag_f:
-        for line in imag_f:
-            phases += [float(line.strip())]
-    amplitudes = np.array(amplitudes)
-    phases = np.array(phases)
 
     # Define parameters for run
     max_drive_amplitude = 2 * np.pi * 20                       # MHz
     params = {
-        "control_count": 1,
         "segment_count": 64,
         "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
         "shot_count": 10,
     }
 
     # Run on the quantum computer
-    repetitions, experiment_results = real_q.run_on_q([phases, phases, phases], [amplitudes, amplitudes, amplitudes], params)
+    repetitions, experiment_results = real_q.run_on_q([waves_list, waves_list, waves_list], params)
 
     for repetition_count, measurement_counts in zip(
         repetitions, experiment_results.measurements

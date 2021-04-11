@@ -22,14 +22,10 @@ from qctrl import Qctrl
 # You will probably want to change these values later depending on how you approach the challenge. For instance, the larger the `shot_count` is, the more measurements we get out of the qubit for each control (we only keep it small here so that the experiment results are easier to visualize).
 #
 
-def run_on_q(phases_list, amplitudes_list, params):
+def run_on_q(waves_list, params):
     qctrl = Qctrl()
 
-    # Zip phases and amplitudes into wave list
-    waves_list = zip(phases_list, amplitudes_list)
-
     # Extract parameters
-    control_count = params ["control_count"]
     segment_count = params ["segment_count"]
     duration = params ["duration"]
     shot_count = params ["shot_count"]
@@ -37,9 +33,9 @@ def run_on_q(phases_list, amplitudes_list, params):
     repetitions = [1, 4, 16, 32, 64]
 
     controls = []
-    for phases, amplitudes in waves_list:
+    for wave in waves_list:
         # Create a random string of complex numbers for each controls.
-        values = amplitudes * np.exp(1j * phases)
+        values = wave [0] * np.exp(1j * wave [1])
 
         # Iterate through possible repetitions
         for rep in repetitions:
@@ -50,4 +46,4 @@ def run_on_q(phases_list, amplitudes_list, params):
         shot_count=shot_count,
     )
 
-    return repetitions, experiment_results
+    return repetitions * len(waves_list), experiment_results
