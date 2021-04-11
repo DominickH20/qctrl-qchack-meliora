@@ -51,8 +51,10 @@ def mutation(values, p_mut_amp, p_mut_phase, gaussian_params):
             )
 
             #check for  OOB - Amplitude
-            if values[i][0] > 1: values[i][0] = 1
-            if values[i][0] < 0: values[i][0] = 0
+            if (values[i][0] > 1): 
+                values[i][0] = 1
+            if (values[i][0] < 0): 
+                values[i][0] = 0
 
             #check for OOB - Phase
             if values[i][1] > 2*np.pi: 
@@ -61,7 +63,7 @@ def mutation(values, p_mut_amp, p_mut_phase, gaussian_params):
                 values[i][1] = values[i][1] - np.floor(values[i][1]/(2*np.pi))*2*np.pi
 
 
-def genetic_gaussian_search(loss, seed, params):
+def genetic_gaussian_search(loss, seed, params, loss_params):
 
     #extract parameters
     n_pop = params["population size"]
@@ -78,7 +80,7 @@ def genetic_gaussian_search(loss, seed, params):
     # enumerate generations
     for gen in range(n_iter):
         # evaluate all candidates in the population
-        scores = loss(pop)
+        scores = loss(pop, loss_params)
         # check for new best solution
         for i in range(n_pop):
             if scores[i] < best_eval:
