@@ -429,3 +429,5 @@ def run_main_h ():
 
     return (h_error,s_h_error)
 
+if __name__ == '__main__':
+    run_main_h()

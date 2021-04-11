@@ -383,6 +383,7 @@ def run_main_not():
     smoothed_amp_phase = np.stack((np.absolute(smoothed_amp),np.angle(smoothed_phase)),axis=1)
 
     print(smoothed_amp_phase.shape)
+    print(smoothed_amp_phase.dtype)
 
     np.save("NOT_START_S.npy",smoothed_amp_phase)
 
@@ -431,3 +432,5 @@ def run_main_not():
     return (not_error, s_not_error)
 
 
+if __name__ == '__main__':
+    run_main_not()
