@@ -407,6 +407,17 @@ def run_main_not():
     # print(ideal_not_gate)
     # print("Smoothed NOT Gate Error: " + str(s_not_error))
 
+    import real_q
+
+    max_drive_amplitude = 2 * np.pi * 20                       # MHz
+    loss_params = {
+    "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
+    "shot_count": 1024,
+    "verbose": False,
+    "circuit": "NOT"
+    }
+    real_q.print_results_single(smoothed_amp_phase,loss_params)
+    
     # In[9]:
 
     # Normalizing the amplitudes
