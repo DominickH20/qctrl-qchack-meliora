@@ -17,25 +17,22 @@
 \section{Introduction}
 In this project we take a two stage approach to finding optimal pulses for the two gates $(H, NOT)$.
 For information on how to run the code, please view our \textbf{README.md}. We first use the more realistic
-simulation provided to gather candidate \textit{seed} solutions to begin our learning process. The intuition
-here is that the seed solutions from the simulation that perform okay on the real qubit, have a good 
-chance of being fine tuned to perform great on the real qubit. We test 7 quantum optimal control solutions 
-(optimal in the context of the sim) and then pick the best one in terms of real qubit performance. 
-This best pulse initialization is then fed into
+simulation provided to gather candidate \textit{seed} solutions to begin our learning process. We prepare the 
+qubits with "promising" seed values, calculated via simulation. These have a high chance of quickly converging 
+in our learning  algorithm to high-fidelity gates. Our algorithm tests several quantum optimal control solutions 
+(optimal in the context of the simulator), picks the best among them, and feeds the locally-optimal pulse into 
 a gaussian step genetic algorithm. This algorithm is guaranteed only to improve upon the performance
 of the \textit{seed}. There is more on both of these methods in the following two sections.
 
 
 \section{First Step: Quantum Optimum Control Optimization with Sinc Interpolation}
-The scripts sim\_h.py and sim\_not.py use a similar approach to the twitch webinar to utilize the more 
-realistic model of the qubit to create an optimal pulse shape for the $(H, NOT)$ logical gates 
-respectively. We found that while it was fairly trivial to generate a pulse that would easily satisfy 
-the model, this proposed pulse frequently not very physically viable. Specifically, it would have a phase 
-and amplitude that oscillated at incredibly fast rates. After experimenting with various different smoothing 
-algorithms and parameters for the optimization, we settled on a method that would produce a more physically 
-feasible pulse shape. 
+We were quickly able to generate a pulse that would easily satisfy the model. 
+The issue though was this proposed pulse at scale is not very physically viable. Specifically, it would have a phase and amplitude that oscillated at incredibly fast rates.
+After experimenting with various different smoothing algorithms and parameters for the 
+optimization, we settled on a method that would produce a more physically feasible 
+pulse shape.
 
-We did this with a combination of two modifications to the method demonstrated in the 
+We did this with a combination of two modifications to the method discussed in the 
 Twitch stream. First, we changed the definition of the amplitude function in the optimization from a bounded\_
 optimization\_variable to an anchored\_difference\_bounded\_variables and added a difference\_bound constraint. 
 This ensured that between the adjacent segments, the amplitude of the pulse would not change by more than a 
