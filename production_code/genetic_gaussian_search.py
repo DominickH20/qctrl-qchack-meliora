@@ -85,7 +85,8 @@ def genetic_gaussian_search(loss, seed, params, loss_params):
         for i in range(n_pop):
             if scores[i] < best_eval:
                 best, best_eval = pop[i], scores[i]
-                print(">%d, new best f(%s \n) = %.3f" % (gen,  np_2d_print(pop[i]), scores[i]))
+                if(loss_params["verbose"]):
+                    print(">%d, new best f(%s \n) = %f" % (gen,  np_2d_print(pop[i]), scores[i]))
 
         # select parents
         selected = [selection(pop, scores) for _ in range(len(pop))]
@@ -124,7 +125,7 @@ if __name__ == '__main__':
         "mutation prob phase": 1/(segment_count*2)
     }
 
-    loss_params = {}
+    loss_params = {"verbose": True}
 
     best, score = genetic_gaussian_search(loss_func, seed, params, loss_params)
     print('Done! THE BEST IS:')
