@@ -16,9 +16,9 @@ password=config['PW']
 def get_best():
   """ Returns the most promising initial wave lengths for the NOT and H gates. """
 
-  best_h = 1
-  best_not = 1
-  runs = 3
+  best_h = 3
+  best_not = 3
+  runs = 7
 
   np.save("H_START_S_BEST.npy",0)
   np.save("NOT_START_S_BEST.npy",0)
@@ -26,9 +26,9 @@ def get_best():
   for i in range(runs):
     
     # Run Sim-H
-    sim_h.run_main_h()[0]
+    sim_h.run_main_h()
     # Run Sim-NOT
-    sim_not.run_main_not()[0]
+    sim_not.run_main_not()
 
     hloss = run_waves("H")
     print("Loss of H Gate")
