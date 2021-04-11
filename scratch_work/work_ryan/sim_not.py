@@ -226,7 +226,7 @@ def simulate_more_realistic_qubit(
 
     return results
 
-def run_main_not(best_run = 1.01):
+def run_main_not():
     # In[3]:
 
     # 1. Limits for drive amplitudes
