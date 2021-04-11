@@ -157,7 +157,7 @@ n = np.diag([0, 1])
 initial_state = np.array([[1], [0]])
 
 # Extra constants used for optimization
-segment_count = 1024
+segment_count = 64
 duration = 5 * np.pi / (max_drive_amplitude)
 ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
@@ -268,19 +268,48 @@ print("NOT Gate Error: " + str(not_error))
 
 # In[9]:
 
-group = (segment_count // 256)
+# fig = plt.figure()
+# plot_controls(
+#     fig,
+#     controls={
+#         "$\\Omega$": optimized_values,
+#     }, polar=False)
+# plt.show()
+
 smoothed = []
-# Smooth values
-for i in range(len(optimized_values) // group):
-    index = i * group
-    avg_r = 0
-    avg_i = 0
-    for j in range(index, index + group):
-        avg_r += optimized_values [j].real
-        avg_i += optimized_values [j].imag
-    avg_r /= group
-    avg_i /= group
-    smoothed += [avg_r + 1j * avg_i]
+for i in range(len(optimized_values)):
+    if i == 0:
+        smoothed += [optimized_values [i]]
+        smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
+    elif i == len(optimized_values) - 1:
+        smoothed += [(optimized_values [i - 1] + optimized_values [i]) / 2]
+        smoothed += [optimized_values [i]]
+    else:
+        smoothed += [(optimized_values [i - 1] + optimized_values [i]) / 2]
+        smoothed += [optimized_values [i]]
+        smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
+
+# group = (segment_count // 256)
+# smoothed = []
+# # Smooth values
+# for i in range(len(optimized_values) // group):
+#     index = i * group
+#     avg_r = 0
+#     avg_i = 0
+#     for j in range(index, index + group):
+#         avg_r += optimized_values [j].real
+#         avg_i += optimized_values [j].imag
+#     avg_r /= group
+#     avg_i /= group
+#     smoothed += [avg_r + 1j * avg_i]
+
+# fig = plt.figure()
+# plot_controls(
+#     fig,
+#     controls={
+#         "$\\Omega$": smoothed,
+#     }, polar=False)
+# plt.show()
 
 # In[10]:
 
