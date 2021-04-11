@@ -51,7 +51,7 @@ def QCTRL_loss(controls, params):
 
 #initialize parameters for SEARCH
 gate_type = "NOT" #H or NOT
-seed = load_seed(gate_type+"_START_S.npy") #load_seed(gate_type+"_START_U.npy")
+seed = load_seed(gate_type+"_START_S_BEST.npy") #load_seed(gate_type+"_START_U.npy")
 segment_count = seed.shape[0]
 search_params = {
     "gaussian_params" : {
@@ -60,7 +60,7 @@ search_params = {
         "amp_sd": .1,
         "ph_sd": .6,
     },
-    "iterations": 100,
+    "iterations": 20,
     "population size": 10, #must be even!!
     "crossover prob": 0.4,
     "mutation prob amp": 1/(segment_count*2),
