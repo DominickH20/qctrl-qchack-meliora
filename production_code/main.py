@@ -30,8 +30,10 @@ def main(circuit):
 
     repetitions = np.split(np.array(repetitions), len(controls))
     measurements = np.split(np.array(experiment_results.measurements), len(controls))
+    losses = []
     for i in range(len(repetitions)):
         print("Control # {}".format(i + 1))
+        loss_sum = 0
         for repetition_count, measurement_counts in zip(
             repetitions [i], measurements [i]
         ):
@@ -42,6 +44,14 @@ def main(circuit):
             print(
                 f"With {repetition_count:2d} repetitions: P(|0>) = {p0:.2f}, P(|1>) = {p1:.2f}, P(|2>) = {p2:.2f}"
             )
+            if circuit == "H":
+                loss_sum += ((p0 - 0.5) ** 2) / repetition_count
+                loss_sum += ((p1 - 0.5) ** 2) / repetition_count
+            elif circuit == "N":
+                loss_sum += ((p0 - 0) ** 2) / repetition_count
+                loss_sum += ((p1 - 1) ** 2) / repetition_count
+        losses += [loss_sum]
+    print(losses)
 
 # Entry point for program
 if __name__ == "__main__":
