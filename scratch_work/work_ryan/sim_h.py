@@ -338,22 +338,22 @@ def run_main_h (best_run = 1.01):
     # In[7]:
 
     # Test optimized pulse on more realistic qubit simulation
-
+    
     optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
-    result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+    # result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
-    # In[8]:
-    realized_h_gate = result["unitary"]
-    h_error = error_norm(realized_h_gate, ideal_h_gate)
+    # # In[8]:
+    # realized_h_gate = result["unitary"]
+    # h_error = error_norm(realized_h_gate, ideal_h_gate)
 
-    h_measurements = result["measurements"]
-    h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
+    # h_measurements = result["measurements"]
+    # h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
 
-    print("Realised H Gate:")
-    print(realized_h_gate)
-    print("Ideal H Gate:")
-    print(ideal_h_gate)
-    print("H Gate Error: " + str(h_error))
+    # print("Realised H Gate:")
+    # print(realized_h_gate)
+    # print("Ideal H Gate:")
+    # print(ideal_h_gate)
+    # print("H Gate Error: " + str(h_error))
 
     # In[81]
 
@@ -390,19 +390,19 @@ def run_main_h (best_run = 1.01):
 
     # Test interpolated pulse against the more realistic simulation
 
-    result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
+    # result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
 
-    realized_h_gate = result["unitary"]
-    s_h_error = error_norm(realized_h_gate, ideal_h_gate)
+    # realized_h_gate = result["unitary"]
+    # s_h_error = error_norm(realized_h_gate, ideal_h_gate)
 
-    h_measurements = result["measurements"]
-    h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
+    # h_measurements = result["measurements"]
+    # h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
 
-    print("Realised Smoothed H Gate:")
-    print(realized_h_gate)
-    print("Ideal H Gate:")
-    print(ideal_h_gate)
-    print("Smoothed H Gate Error: " + str(s_h_error))
+    # print("Realised Smoothed H Gate:")
+    # print(realized_h_gate)
+    # print("Ideal H Gate:")
+    # print(ideal_h_gate)
+    # print("Smoothed H Gate Error: " + str(s_h_error))
 
     # In[9]:
 
@@ -420,7 +420,7 @@ def run_main_h (best_run = 1.01):
 
     np.save("H_START_U.npy",unsmoothed_amp_phase)
 
-    return (h_error,s_h_error)
+    # return (h_error,s_h_error)
 
 if __name__ == '__main__':
     run_main_h()

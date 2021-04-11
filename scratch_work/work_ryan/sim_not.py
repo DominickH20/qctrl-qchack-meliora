@@ -340,21 +340,21 @@ def run_main_not():
     optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
     print("Optimized Values:")
     print(optimized_values)
-    result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+    # result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
 
-    # In[8]:
-    realized_not_gate = result["unitary"]
-    not_error = error_norm(realized_not_gate, ideal_not_gate)
+    # # In[8]:
+    # realized_not_gate = result["unitary"]
+    # not_error = error_norm(realized_not_gate, ideal_not_gate)
 
-    not_measurements = result["measurements"]
-    not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+    # not_measurements = result["measurements"]
+    # not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
 
-    print("Realised NOT Gate:")
-    print(realized_not_gate)
-    print("Ideal NOT Gate:")
-    print(ideal_not_gate)
-    print("NOT Gate Error: " + str(not_error))
+    # print("Realised NOT Gate:")
+    # print(realized_not_gate)
+    # print("Ideal NOT Gate:")
+    # print(ideal_not_gate)
+    # print("NOT Gate Error: " + str(not_error))
 
     # In[81]
 
@@ -390,19 +390,19 @@ def run_main_not():
 
     # Test interpolated pulse against the more realistic simulation
 
-    result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
+    # result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
 
-    realized_not_gate = result["unitary"]
-    s_not_error = error_norm(realized_not_gate, ideal_not_gate)
+    # realized_not_gate = result["unitary"]
+    # s_not_error = error_norm(realized_not_gate, ideal_not_gate)
 
-    not_measurements = result["measurements"]
-    not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+    # not_measurements = result["measurements"]
+    # not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
 
-    print("Realised Smoothed NOT Gate:")
-    print(realized_not_gate)
-    print("Ideal NOT Gate:")
-    print(ideal_not_gate)
-    print("Smoothed NOT Gate Error: " + str(s_not_error))
+    # print("Realised Smoothed NOT Gate:")
+    # print(realized_not_gate)
+    # print("Ideal NOT Gate:")
+    # print(ideal_not_gate)
+    # print("Smoothed NOT Gate Error: " + str(s_not_error))
 
     # In[9]:
 
@@ -418,7 +418,7 @@ def run_main_not():
 
     np.save("NOT_START_U.npy",unsmoothed_amp_phase)
 
-    return (not_error, s_not_error)
+    # return (not_error, s_not_error)
 
 
 if __name__ == '__main__':
