@@ -431,6 +431,16 @@ def run_main_h ():
 
     np.save("H_START_U.npy",unsmoothed_amp_phase)
 
+    import real_q
+
+    max_drive_amplitude = 2 * np.pi * 20                       # MHz
+    loss_params = {
+    "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
+    "shot_count": 1024,
+    "verbose": False,
+    "circuit": "H"
+    }
+    real_q.print_results_single(smoothed_amp_phase,loss_params)
     # return (h_error,s_h_error)
 
 if __name__ == '__main__':

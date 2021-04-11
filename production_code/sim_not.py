@@ -381,7 +381,9 @@ def run_main_not():
     #     for val in smoothed_phase:
     #         sphase_f.write("{}\n".format(np.angle(val)))
 
-    smoothed_amp_phase = np.stack((np.absolute(smoothed_amp),np.angle(smoothed_phase)),axis=1)
+    smoothed_amp_phase = np.stack((smoothed_amp,np.angle(smoothed_phase)),axis=1)
+
+    print(np.angle(smoothed) - np.angle(smoothed_phase))
 
     print(smoothed_amp_phase.shape)
     print(smoothed_amp_phase.dtype)
@@ -431,6 +433,18 @@ def run_main_not():
     print(unsmoothed_amp_phase.shape)
 
     np.save("NOT_START_U.npy",unsmoothed_amp_phase)
+
+    import real_q
+
+    max_drive_amplitude = 2 * np.pi * 20                       # MHz
+    loss_params = {
+    "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
+    "shot_count": 1024,
+    "verbose": False,
+    "circuit": "NOT"
+    }
+    real_q.print_results_single(smoothed_amp_phase,loss_params)
+
 
     # return (not_error, s_not_error)
 
