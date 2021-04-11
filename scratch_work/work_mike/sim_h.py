@@ -118,7 +118,7 @@ def estimate_probability_of_one(measurements):
 
 def simulate_more_realistic_qubit(
     duration=1, values=np.array([np.pi]), shots=1024, repetitions=1
-):
+    ):
 
     # 1. Limits for drive amplitudes
     assert np.amax(values) <= 1.0
@@ -228,201 +228,204 @@ def simulate_more_realistic_qubit(
 
     return results
 
-# In[3]:
+def run_main_h ():
+    # In[3]:
 
-# 1. Limits for drive amplitudes
-max_drive_amplitude = 2 * np.pi * 20  # MHz
+    # 1. Limits for drive amplitudes
+    max_drive_amplitude = 2 * np.pi * 20  # MHz
 
-# 2. Dephasing error
-dephasing_error = -2 * 2 * np.pi  # MHz
+    # 2. Dephasing error
+    dephasing_error = -2 * 2 * np.pi  # MHz
 
-# 3. Amplitude error
-amplitude_i_error = 0.98
-amplitude_q_error = 1.03
+    # 3. Amplitude error
+    amplitude_i_error = 0.98
+    amplitude_q_error = 1.03
 
-# 4. Control line bandwidth limit
-cut_off_frequency = 2 * np.pi * 10  # MHz
-resample_segment_count = 1000
+    # 4. Control line bandwidth limit
+    cut_off_frequency = 2 * np.pi * 10  # MHz
+    resample_segment_count = 1000
 
-# Lowering operator
-b = np.array([[0, 1], [0, 0]])
-# Number operator
-n = np.diag([0, 1])
-# Initial state
-initial_state = np.array([[1], [0]])
+    # Lowering operator
+    b = np.array([[0, 1], [0, 0]])
+    # Number operator
+    n = np.diag([0, 1])
+    # Initial state
+    initial_state = np.array([[1], [0]])
 
-# Extra constants used for optimization
-segment_count = 32
-duration = 5 * np.pi / (max_drive_amplitude)
-ideal_h_gate = (1 / np.sqrt(2)) * np.array([[1, 1], [1, -1]])
+    # Extra constants used for optimization
+    segment_count = 32
+    duration = 5 * np.pi / (max_drive_amplitude)
+    ideal_h_gate = (1 / np.sqrt(2)) * np.array([[1, 1], [1, -1]])
 
 
-# We now create a list of controls to send to the qubit. Each of them is a dictionary with a `duration` (how long the pulse is) and an array of (complex) `values` indicating the strength of the pulse in piecewise-constant intervals. Here we use random pulses, so we do not expect them to perform very well at all or implement any particular gate.
+    # We now create a list of controls to send to the qubit. Each of them is a dictionary with a `duration` (how long the pulse is) and an array of (complex) `values` indicating the strength of the pulse in piecewise-constant intervals. Here we use random pulses, so we do not expect them to perform very well at all or implement any particular gate.
 
-# In[4]:
+    # In[4]:
 
-with qctrl.create_graph() as graph:
-    # Create optimizable modulus and phase.
-    values = qctrl.operations.anchored_difference_bounded_variables(
-        count=segment_count, lower_bound=0, upper_bound=1,difference_bound = 0.5,
-    ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
-        count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
-    ))
+    with qctrl.create_graph() as graph:
+        # Create optimizable modulus and phase.
+        values = qctrl.operations.anchored_difference_bounded_variables(
+            count=segment_count, lower_bound=0, upper_bound=1,difference_bound = 0.5,
+        ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
+            count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
+        ))
 
-    export_drive = qctrl.operations.pwc_signal(
-        duration=duration, values=values, name="Omega"
+        export_drive = qctrl.operations.pwc_signal(
+            duration=duration, values=values, name="Omega"
+        )
+
+        # Apply 1. max Rabi rate.
+        values = values * max_drive_amplitude
+
+        # Apply 3. amplitude errors.
+        values_i = np.real(values) * amplitude_i_error
+        values_q = np.imag(values) * amplitude_q_error
+        values = values_i + 1j * values_q
+
+        # Apply 4. bandwidth limits
+        drive_unfiltered = qctrl.operations.pwc_signal(duration=duration, values=values)
+        drive_filtered = qctrl.operations.convolve_pwc(
+            pwc=drive_unfiltered,
+            kernel_integral=qctrl.operations.sinc_integral_function(cut_off_frequency),
+        )
+        drive = qctrl.operations.discretize_stf(
+            drive_filtered, duration=duration, segments_count=resample_segment_count
+        )
+
+        # Construct microwave drive
+        drive_term = qctrl.operations.pwc_operator_hermitian_part(
+            qctrl.operations.pwc_operator(signal=drive, operator=b)
+        )
+
+        # Construct 2. dephasing term.
+        dephasing_term = qctrl.operations.constant_pwc_operator(
+            operator=dephasing_error * n,
+            duration=duration,
+        )
+
+        # Construct Hamiltonian.
+        hamiltonian = qctrl.operations.pwc_sum(
+            [
+                drive_term,
+                dephasing_term,
+            ]
+        )
+
+        # Construct Target operator
+        target_operator = qctrl.operations.target(operator=ideal_h_gate)
+
+        # Calculate infidelity between target H gate and final unitary
+        indfidelity = qctrl.operations.infidelity_pwc(
+            hamiltonian=hamiltonian,
+            target_operator=target_operator,
+            name="infidelity",
+        )
+
+    # In[5]:
+
+    # Optimize graph
+    optimization_result = qctrl.functions.calculate_optimization(
+        cost_node_name="infidelity",
+        output_node_names=["Omega"],
+        graph=graph,
+        optimization_count=40,
     )
 
-    # Apply 1. max Rabi rate.
-    values = values * max_drive_amplitude
+    # In[6]:
 
-    # Apply 3. amplitude errors.
-    values_i = np.real(values) * amplitude_i_error
-    values_q = np.imag(values) * amplitude_q_error
-    values = values_i + 1j * values_q
+    print("Infidelity of gate: " + str(optimization_result.cost))
 
-    # Apply 4. bandwidth limits
-    drive_unfiltered = qctrl.operations.pwc_signal(duration=duration, values=values)
-    drive_filtered = qctrl.operations.convolve_pwc(
-        pwc=drive_unfiltered,
-        kernel_integral=qctrl.operations.sinc_integral_function(cut_off_frequency),
-    )
-    drive = qctrl.operations.discretize_stf(
-        drive_filtered, duration=duration, segments_count=resample_segment_count
-    )
+    # In[7]:
 
-    # Construct microwave drive
-    drive_term = qctrl.operations.pwc_operator_hermitian_part(
-        qctrl.operations.pwc_operator(signal=drive, operator=b)
-    )
+    # Test optimized pulse on more realistic qubit simulation
 
-    # Construct 2. dephasing term.
-    dephasing_term = qctrl.operations.constant_pwc_operator(
-        operator=dephasing_error * n,
-        duration=duration,
-    )
+    optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
+    result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
-    # Construct Hamiltonian.
-    hamiltonian = qctrl.operations.pwc_sum(
-        [
-            drive_term,
-            dephasing_term,
-        ]
-    )
+    # In[8]:
+    realized_h_gate = result["unitary"]
+    h_error = error_norm(realized_h_gate, ideal_h_gate)
 
-    # Construct Target operator
-    target_operator = qctrl.operations.target(operator=ideal_h_gate)
+    h_measurements = result["measurements"]
+    h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
 
-    # Calculate infidelity between target H gate and final unitary
-    indfidelity = qctrl.operations.infidelity_pwc(
-        hamiltonian=hamiltonian,
-        target_operator=target_operator,
-        name="infidelity",
-    )
+    print("Realised H Gate:")
+    print(realized_h_gate)
+    print("Ideal H Gate:")
+    print(ideal_h_gate)
+    print("H Gate Error: " + str(h_error))
 
-# In[5]:
+    # In[81]
 
-# Optimize graph
-optimization_result = qctrl.functions.calculate_optimization(
-    cost_node_name="infidelity",
-    output_node_names=["Omega"],
-    graph=graph,
-    optimization_count=40,
-)
+    # Perform a Sinc Interpolation on the amplitudes of the pulse
 
-# In[6]:
+    smoothed_amp = upsample(np.absolute(optimized_values),4)
 
-print("Infidelity of gate: " + str(optimization_result.cost))
+    smoothed_phase = []
+    for i in optimized_values:
+        smoothed_phase += [i]
+        smoothed_phase += [i]
+        smoothed_phase += [i]
+        smoothed_phase += [i]
 
-# In[7]:
+    # Normalizing the amplitudes
+    max_amp = max(smoothed_amp)
 
-# Test optimized pulse on more realistic qubit simulation
+    smoothed_amp = smoothed_amp / max_amp
 
-optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
-result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+    smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
 
-# In[8]:
-realized_h_gate = result["unitary"]
-h_error = error_norm(realized_h_gate, ideal_h_gate)
+    # with open("samplitude.txt", "w") as samplitude_f:
+    #     for val in smoothed_amp:
+    #         samplitude_f.write("{}\n".format(val))
+    # with open("sphase.txt", "w") as sphase_f:
+    #     for val in smoothed_phase:
+    #         sphase_f.write("{}\n".format(np.angle(val)))
+    smoothed_amp_phase = np.stack((smoothed_amp,smoothed_phase),axis=1)
 
-h_measurements = result["measurements"]
-h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
-
-print("Realised H Gate:")
-print(realized_h_gate)
-print("Ideal H Gate:")
-print(ideal_h_gate)
-print("H Gate Error: " + str(h_error))
-
-# In[81]
-
-# Perform a Sinc Interpolation on the amplitudes of the pulse
-
-smoothed_amp = upsample(np.absolute(optimized_values),4)
-
-smoothed_phase = []
-for i in optimized_values:
-    smoothed_phase += [i]
-    smoothed_phase += [i]
-    smoothed_phase += [i]
-    smoothed_phase += [i]
-
-# Normalizing the amplitudes
-max_amp = max(smoothed_amp)
-
-smoothed_amp = smoothed_amp / max_amp
-
-smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
-
-# with open("samplitude.txt", "w") as samplitude_f:
-#     for val in smoothed_amp:
-#         samplitude_f.write("{}\n".format(val))
-# with open("sphase.txt", "w") as sphase_f:
-#     for val in smoothed_phase:
-#         sphase_f.write("{}\n".format(np.angle(val)))
-smoothed_amp_phase = np.stack((smoothed_amp,smoothed_phase),axis=1)
-
-print(smoothed_amp_phase.shape)
+    print(smoothed_amp_phase.shape)
 
 
-np.save("H_START_S.npy",smoothed_amp_phase)
+    np.save("H_START_S.npy",smoothed_amp_phase)
 
-# Test interpolated pulse against the more realistic simulation
+    # Test interpolated pulse against the more realistic simulation
 
-result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
+    result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
 
-realized_h_gate = result["unitary"]
-h_error = error_norm(realized_h_gate, ideal_h_gate)
+    realized_h_gate = result["unitary"]
+    s_h_error = error_norm(realized_h_gate, ideal_h_gate)
 
-h_measurements = result["measurements"]
-h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
+    h_measurements = result["measurements"]
+    h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
 
-print("Realised Smoothed H Gate:")
-print(realized_h_gate)
-print("Ideal H Gate:")
-print(ideal_h_gate)
-print("Smoothed H Gate Error: " + str(h_error))
+    print("Realised Smoothed H Gate:")
+    print(realized_h_gate)
+    print("Ideal H Gate:")
+    print(ideal_h_gate)
+    print("Smoothed H Gate Error: " + str(s_h_error))
 
-# In[9]:
+    # In[9]:
 
-# Normalizing the amplitudes
-absolutes = []
-for val in optimized_values:
-    absolutes += [np.absolute(val)]
-max_amp = max(absolutes)
+    # Normalizing the amplitudes
+    absolutes = []
+    for val in optimized_values:
+        absolutes += [np.absolute(val)]
+    max_amp = max(absolutes)
 
-# Write parameters to file
+    # Write parameters to file
 
-# with open("amplitude.txt", "w") as amplitude_f:
-#     for val in absolutes:
-#         amplitude_f.write("{}\n".format(val / max_amp))
-# with open("phase.txt", "w") as phase_f:
-#     for val in optimized_values:
-#         phase_f.write("{}\n".format(np.angle(val)))
+    # with open("amplitude.txt", "w") as amplitude_f:
+    #     for val in absolutes:
+    #         amplitude_f.write("{}\n".format(val / max_amp))
+    # with open("phase.txt", "w") as phase_f:
+    #     for val in optimized_values:
+    #         phase_f.write("{}\n".format(np.angle(val)))
 
-unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
+    unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
 
-print(unsmoothed_amp_phase.shape)
+    print(unsmoothed_amp_phase.shape)
 
-np.save("H_START_U.npy",unsmoothed_amp_phase)
+    np.save("H_START_U.npy",unsmoothed_amp_phase)
+
+    return (h_error,s_h_error)
 
