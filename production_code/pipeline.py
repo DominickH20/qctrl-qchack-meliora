@@ -8,13 +8,17 @@ import jsonpickle
 import genetic_gaussian_search as search
 import real_q
 
+#function to load array from filename
 def load_seed(filename):
     s = np.load(filename)
     return s
 
+#Loss function that queries qubit (for use in genetic algo)
 def QCTRL_loss(controls, params):
+    #get experiment results
     repetitions, experiment_results = real_q.run_on_q(controls, params)
 
+    #break down results into probabilties and compute loss
     repetitions = np.split(np.array(repetitions), len(controls))
     measurements = np.split(np.array(experiment_results.measurements), len(controls))
     losses = []
@@ -33,18 +37,19 @@ def QCTRL_loss(controls, params):
                 print(
                     f"With {repetition_count:2d} repetitions: P(|0>) = {p0:.2f}, P(|1>) = {p1:.2f}, P(|2>) = {p2:.2f}"
                 )
-
+            #loss is computed here
             if params["circuit"] == "H":
                 loss_sum += ((p0 - 0.5) ** 2) / repetition_count
                 loss_sum += ((p1 - 0.5) ** 2) / repetition_count
             elif params["circuit"] == "NOT":
                 loss_sum += ((p0 - 0) ** 2) / repetition_count
                 loss_sum += ((p1 - 1) ** 2) / repetition_count
+        #aggregate over all repetitions
         losses += [loss_sum]
     return losses
 
 
-#initialize parameters
+#initialize parameters for SEARCH
 gate_type = "H" #H or NOT
 seed = load_seed(gate_type+"_START_S_BEST.npy") #load_seed(gate_type+"_START_U.npy")
 segment_count = seed.shape[0]
@@ -62,6 +67,7 @@ search_params = {
     "mutation prob phase": 1/(segment_count*2)
 }
 
+#init parameters for LOSS
 max_drive_amplitude = 2 * np.pi * 20                       # MHz
 loss_params = {
     "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
