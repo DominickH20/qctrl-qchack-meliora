@@ -284,32 +284,32 @@ with open("phase.txt", "w") as phase_f:
         phase_f.write("{}\n".format(np.angle(val)))
 
 
-# In[10]
+# # In[10]
 
-amplitudes = []
-phases = []
-# Read in lists of parameters
-with open("samplitude_fake_H.txt", "r") as real_f:
-    for line in real_f:
-        amplitudes += [float(line.strip())]
-with open("sphase_fake_H.txt", "r") as imag_f:
-    for line in imag_f:
-        phases += [float(line.strip())]
-amplitudes = np.array(amplitudes)
-phases = np.array(phases)
-fake = amplitudes * np.exp(1j * phases)
+# amplitudes = []
+# phases = []
+# # Read in lists of parameters
+# with open("samplitude_fake_H.txt", "r") as real_f:
+#     for line in real_f:
+#         amplitudes += [float(line.strip())]
+# with open("sphase_fake_H.txt", "r") as imag_f:
+#     for line in imag_f:
+#         phases += [float(line.strip())]
+# amplitudes = np.array(amplitudes)
+# phases = np.array(phases)
+# fake = amplitudes * np.exp(1j * phases)
 
-result = simulate_more_realistic_qubit(duration=duration, values=fake, shots=1024, repetitions=1)
+# result = simulate_more_realistic_qubit(duration=duration, values=fake, shots=1024, repetitions=1)
 
-realized_h_gate = result["unitary"]
-h_error = error_norm(realized_h_gate, ideal_h_gate)
+# realized_h_gate = result["unitary"]
+# h_error = error_norm(realized_h_gate, ideal_h_gate)
 
-h_measurements = result["measurements"]
-h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
+# h_measurements = result["measurements"]
+# h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
 
-print("s Realised H Gate:")
-print(realized_h_gate)
-print("s Ideal H Gate:")
-print(ideal_h_gate)
-print("s H Gate Error: " + str(h_error))
-# %%
+# print("s Realised H Gate:")
+# print(realized_h_gate)
+# print("s Ideal H Gate:")
+# print(ideal_h_gate)
+# print("s H Gate Error: " + str(h_error))
+# # %%
