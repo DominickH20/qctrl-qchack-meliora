@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import jsonpickle.ext.numpy as jsonpickle_numpy
+jsonpickle_numpy.register_handlers()
+import jsonpickle
+
 import genetic_gaussian_search as search
 import real_q
 
@@ -51,7 +55,7 @@ search_params = {
         "amp_sd": .1,
         "ph_sd": .6,
     },
-    "iterations": 3,
+    "iterations": 1,
     "population size": 10, #must be even!!
     "crossover prob": 0.1,
     "mutation prob amp": 1/(segment_count*2),
@@ -66,7 +70,23 @@ loss_params = {
     "circuit": gate_type
 }
 
+#conduct search
 best, score = search.genetic_gaussian_search(QCTRL_loss, seed, search_params, loss_params)
 print('Done! THE BEST IS:')
 print('f(%s \n) = %f' % (search.np_2d_print(best), score))
 real_q.print_results_single(best, loss_params)
+
+#output a json, normalize just in case
+max_amp = max(best[:,0])
+best[:,0] = best[:,0]/max_amp
+values = best[:,0] * np.exp(1j * best[:,1])
+
+#build json and output
+json_out = {
+    "duration" : loss_params["duration"],
+    "values": values
+}
+# print(json_out)
+json_encode = jsonpickle.encode(json_out)
+with open(gate_type.lower()+"_gate_pulse.json", 'w') as file:
+    file.write(json_encode)

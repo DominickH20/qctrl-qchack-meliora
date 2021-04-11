@@ -66,7 +66,7 @@ def run_on_q_single(wave, params):
 
     max_amp = max(wave[:,0])
     wave[:,0] = wave[:,0]/max_amp
-    values = wave [:,0] * np.exp(1j * wave [:,1])
+    values = wave[:,0] * np.exp(1j * wave[:,1])
 
     # Iterate through possible repetitions
     for rep in repetitions:
