@@ -18,9 +18,9 @@ def get_best():
   for i in range(runs):
     
     # Run Sim-H
-    h = sim_h.run_main_h(best_h)[0]
+    sim_h.run_main_h(best_h)[0]
     # Run Sim-NOT
-    n = sim_not.run_main_not(best_not)[0]
+    sim_not.run_main_not(best_not)[0]
 
     hloss = run_waves("H")
     nloss = run_waves("N")
@@ -32,7 +32,7 @@ def get_best():
 
     # If this is a better NOT value, update
     if (n < best_n):
-      best_not = n
+      best_not = nloss
       overwriteNOT()
 
   h_waves_list = np.load("H_START_S_BEST.npy")
