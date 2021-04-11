@@ -101,8 +101,9 @@ def interp (xp, xt, x):
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
 
-
-qctrl = Qctrl()
+from dotenv import dotenv_values
+config = dotenv_values(".env")
+qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
 
 # In[2]:
 
@@ -252,7 +253,7 @@ def run_main_not():
 
     # Extra constants used for optimization
     # control_count = 5
-    segment_count = 32 # 16
+    segment_count = 64 # 16
     duration = 5 * np.pi / (max_drive_amplitude) # 30.0
     ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
@@ -264,7 +265,7 @@ def run_main_not():
     with qctrl.create_graph() as graph:
         # Create optimizable modulus and phase.
         values = qctrl.operations.anchored_difference_bounded_variables(
-            count=segment_count, lower_bound=0, upper_bound=1, difference_bound = 0.5
+            count=segment_count, lower_bound=0, upper_bound=1, difference_bound = 0.1
         ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
             count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
         ))
@@ -340,32 +341,30 @@ def run_main_not():
     optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
     print("Optimized Values:")
     print(optimized_values)
-    # result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+    result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
 
-    # # In[8]:
-    # realized_not_gate = result["unitary"]
-    # not_error = error_norm(realized_not_gate, ideal_not_gate)
+    # In[8]:
+    realized_not_gate = result["unitary"]
+    not_error = error_norm(realized_not_gate, ideal_not_gate)
 
-    # not_measurements = result["measurements"]
-    # not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+    not_measurements = result["measurements"]
+    not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
 
-    # print("Realised NOT Gate:")
-    # print(realized_not_gate)
-    # print("Ideal NOT Gate:")
-    # print(ideal_not_gate)
-    # print("NOT Gate Error: " + str(not_error))
+    print("Realised NOT Gate:")
+    print(realized_not_gate)
+    print("Ideal NOT Gate:")
+    print(ideal_not_gate)
+    print("NOT Gate Error: " + str(not_error))
 
     # In[81]
 
     # Perform a Sinc Interpolation on the amplitudes of the pulse
 
-    smoothed_amp = upsample(np.absolute(optimized_values),4)
+    smoothed_amp = upsample(np.absolute(optimized_values),2)
 
     smoothed_phase = []
     for i in optimized_values:
-        smoothed_phase += [i]
-        smoothed_phase += [i]
         smoothed_phase += [i]
         smoothed_phase += [i]
     # Normalizing the amplitudes
@@ -375,12 +374,12 @@ def run_main_not():
 
     smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
 
-    # with open("samplitude.txt", "w") as samplitude_f:
-    #     for val in smoothed_amp:
-    #         samplitude_f.write("{}\n".format(val))
-    # with open("sphase.txt", "w") as sphase_f:
-    #     for val in smoothed_phase:
-    #         sphase_f.write("{}\n".format(np.angle(val)))
+    with open("samplitude.txt", "w") as samplitude_f:
+        for val in smoothed_amp:
+            samplitude_f.write("{}\n".format(val))
+    with open("sphase.txt", "w") as sphase_f:
+        for val in smoothed_phase:
+            sphase_f.write("{}\n".format(np.angle(val)))
 
     smoothed_amp_phase = np.stack((np.absolute(smoothed_amp),np.angle(smoothed_phase)),axis=1)
 
@@ -392,19 +391,19 @@ def run_main_not():
 
     # Test interpolated pulse against the more realistic simulation
 
-    # result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
+    result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
 
-    # realized_not_gate = result["unitary"]
-    # s_not_error = error_norm(realized_not_gate, ideal_not_gate)
+    realized_not_gate = result["unitary"]
+    s_not_error = error_norm(realized_not_gate, ideal_not_gate)
 
-    # not_measurements = result["measurements"]
-    # not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+    not_measurements = result["measurements"]
+    not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
 
-    # print("Realised Smoothed NOT Gate:")
-    # print(realized_not_gate)
-    # print("Ideal NOT Gate:")
-    # print(ideal_not_gate)
-    # print("Smoothed NOT Gate Error: " + str(s_not_error))
+    print("Realised Smoothed NOT Gate:")
+    print(realized_not_gate)
+    print("Ideal NOT Gate:")
+    print(ideal_not_gate)
+    print("Smoothed NOT Gate Error: " + str(s_not_error))
 
     # In[9]:
 
@@ -414,13 +413,26 @@ def run_main_not():
         absolutes += [np.absolute(val)]
     max_amp = max(absolutes)
 
+    absolutes = absolutes / max_amp
+
+
+
+    # Write parameters to file
+
+    with open("amplitude.txt", "w") as amplitude_f:
+        for val in absolutes:
+            amplitude_f.write("{}\n".format(val))
+    with open("phase.txt", "w") as phase_f:
+        for val in optimized_values:
+            phase_f.write("{}\n".format(np.angle(val)))
+
     unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
 
     print(unsmoothed_amp_phase.shape)
 
     np.save("NOT_START_U.npy",unsmoothed_amp_phase)
 
-    # return (not_error, s_not_error)
+    return (not_error, s_not_error)
 
 
 if __name__ == '__main__':
