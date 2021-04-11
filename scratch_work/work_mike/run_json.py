@@ -52,6 +52,15 @@ experiment_results = qctrl.functions.calculate_qchack_measurements(
     controls=controls,
     shot_count=shot_count,
 )
+measurements = experiment_results.measurements
+for k, measurement_counts in enumerate(measurements):
+    print(f"control #{k}: {measurement_counts}")
+    
+for k, measurement_counts in enumerate(measurements):
+    p0 = measurement_counts.count(0) / shot_count
+    p1 = measurement_counts.count(1) / shot_count
+    p2 = measurement_counts.count(2) / shot_count
+    print(f"control #{k}: P(|0>) = {p0:.2f}, P(|1>) = {p1:.2f}, P(|2>) = {p2:.2f}")
 
 #conduct experiment
 repetitions, experiment_results = repetitions * 1, experiment_results
