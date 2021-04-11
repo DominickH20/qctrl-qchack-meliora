@@ -96,100 +96,6 @@ def interp (xp, xt, x):
 
   return y.squeeze ()
 
-# default_workers = 6
-# def interp3 (xp, xt, x, workers = default_workers):
-#   """
-#   Interpolate the signal to the new points using a sinc kernel
-
-#   Like interp, but splits the signal into domains and calculates them
-#   separately using multiple threads.
-
-#   input:
-#   xt    time points x is defined on
-#   x     input signal column vector or matrix, with a signal in each row
-#   xp    points to evaluate the new signal on
-#   workers  number of threaded workers to use (default: 16)
-
-#   output:
-#   y     the interpolated signal at points xp
-#   """
-
-#   mn = x.shape
-#   if len(mn) == 2:
-#     m = mn[0]
-#     n = mn[1]
-#   elif len(mn) == 1:
-#     m = 1
-#     n = mn[0]
-#   else:
-#     raise ValueError ("x is greater than 2D")
-
-#   nn = len(xp)
-
-#   y = np.zeros((m, nn))
-
-#   # from upsample
-#   if workers is None: workers = default_workers
-
-#   xxp = np.array_split (xp, workers)
-
-#   from concurrent.futures import ThreadPoolExecutor
-#   import concurrent.futures
-
-#   def approx (_xp, strt):
-#     for (pi, p) in enumerate (_xp):
-#       si = np.tile (np.sinc (xt - p), (m, 1))
-#       y[:, strt + pi] = np.sum (si * x)
-
-#   jobs = []
-#   with ThreadPoolExecutor (max_workers = workers) as executor:
-#     strt = 0
-#     for w in np.arange (0, workers):
-#       f = executor.submit (approx, xxp[w], strt)
-#       strt = strt + len (xxp[w])
-#       jobs.append (f)
-
-
-#   concurrent.futures.wait (jobs)
-
-#   return y.squeeze ()
-
-# def upsample2 (x, k):
-#   """
-#   Upsample the signal to the new points using a sinc kernel. The
-#   interpolation is done using a matrix multiplication.
-
-#   Requires a lot of memory, but is fast.
-
-#   input:
-#   xt    time points x is defined on
-#   x     input signal column vector or matrix, with a signal in each row
-#   xp    points to evaluate the new signal on
-
-#   output:
-#   y     the interpolated signal at points xp
-#   """
-
-#   mn = x.shape
-
-#   if len(mn) == 2:
-#     m = mn[0]
-#     n = mn[1]
-#   elif len(mn) == 1:
-#     m = 1
-#     n = mn[0]
-#   else:
-#     raise ValueError ("x is greater than 2D")
-
-#   nn = n * k
-
-#   [T, Ts]  = np.mgrid[1:n:nn*1j, 1:n:n*1j]
-#   TT = Ts - T
-#   del T, Ts
-
-#   y = np.sinc(TT).dot (x.reshape(n, 1))
-
-#   return y.squeeze()
 # In[1]:
 
 # import matplotlib.pyplot as plt
@@ -468,13 +374,12 @@ smoothed_amp = smoothed_amp / max_amp
 
 smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
 
-
-with open("samplitude.txt", "w") as samplitude_f:
-    for val in smoothed_amp:
-        samplitude_f.write("{}\n".format(val))
-with open("sphase.txt", "w") as sphase_f:
-    for val in smoothed_phase:
-        sphase_f.write("{}\n".format(np.angle(val)))
+# with open("samplitude.txt", "w") as samplitude_f:
+#     for val in smoothed_amp:
+#         samplitude_f.write("{}\n".format(val))
+# with open("sphase.txt", "w") as sphase_f:
+#     for val in smoothed_phase:
+#         sphase_f.write("{}\n".format(np.angle(val)))
 smoothed_amp_phase = np.stack((smoothed_amp,smoothed_phase),axis=1)
 
 print(smoothed_amp_phase.shape)
@@ -507,12 +412,13 @@ for val in optimized_values:
 max_amp = max(absolutes)
 
 # Write parameters to file
-with open("amplitude.txt", "w") as amplitude_f:
-    for val in absolutes:
-        amplitude_f.write("{}\n".format(val / max_amp))
-with open("phase.txt", "w") as phase_f:
-    for val in optimized_values:
-        phase_f.write("{}\n".format(np.angle(val)))
+
+# with open("amplitude.txt", "w") as amplitude_f:
+#     for val in absolutes:
+#         amplitude_f.write("{}\n".format(val / max_amp))
+# with open("phase.txt", "w") as phase_f:
+#     for val in optimized_values:
+#         phase_f.write("{}\n".format(np.angle(val)))
 
 unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
 

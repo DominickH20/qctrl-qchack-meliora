@@ -372,13 +372,12 @@ smoothed_amp = smoothed_amp / max_amp
 
 smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
 
-
-with open("samplitude.txt", "w") as samplitude_f:
-    for val in smoothed_amp:
-        samplitude_f.write("{}\n".format(val))
-with open("sphase.txt", "w") as sphase_f:
-    for val in smoothed_phase:
-        sphase_f.write("{}\n".format(np.angle(val)))
+# with open("samplitude.txt", "w") as samplitude_f:
+#     for val in smoothed_amp:
+#         samplitude_f.write("{}\n".format(val))
+# with open("sphase.txt", "w") as sphase_f:
+#     for val in smoothed_phase:
+#         sphase_f.write("{}\n".format(np.angle(val)))
 
 smoothed_amp_phase = np.stack((smoothed_amp,smoothed_phase),axis=1)
 
@@ -414,12 +413,13 @@ max_amp = max(absolutes)
 
 
 # Write parameters to file
-with open("amplitude.txt", "w") as amplitude_f:
-    for val in absolutes:
-        amplitude_f.write("{}\n".format(val / max_amp))
-with open("phase.txt", "w") as phase_f:
-    for val in optimized_values:
-        phase_f.write("{}\n".format(np.angle(val)))
+
+# with open("amplitude.txt", "w") as amplitude_f:
+#     for val in absolutes:
+#         amplitude_f.write("{}\n".format(val / max_amp))
+# with open("phase.txt", "w") as phase_f:
+#     for val in optimized_values:
+#         phase_f.write("{}\n".format(np.angle(val)))
 
 unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
 
