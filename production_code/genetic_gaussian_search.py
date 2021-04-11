@@ -74,11 +74,11 @@ def genetic_gaussian_search(loss, seed, params):
     pop = np.repeat(seed[np.newaxis,:,:], n_pop, axis=0)
 
     # keep track of best solution
-    best, best_eval = 0, loss(pop[0])
+    best, best_eval = 0, 3 # 3 is an upper loss bound
     # enumerate generations
     for gen in range(n_iter):
         # evaluate all candidates in the population
-        scores = [loss(c) for c in pop]
+        scores = loss(pop)
         # check for new best solution
         for i in range(n_pop):
             if scores[i] < best_eval:

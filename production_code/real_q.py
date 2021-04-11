@@ -7,6 +7,9 @@ import numpy as np
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
 
+from dotenv import dotenv_values
+config = dotenv_values(".env")
+
 # ## Accessing the qubit in the cloud (the challenge!)
 # 
 # The challenge is to create pulses that implement high fidelity Hadamard and NOT gates on a qubit in the cloud provided through BOULDER OPAL. Here we show you how to send pulses to the qubit in the cloud and get measurement results. 
@@ -23,10 +26,9 @@ from qctrl import Qctrl
 #
 
 def run_on_q(waves_list, params):
-    qctrl = Qctrl()
+    qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
 
     # Extract parameters
-    segment_count = params ["segment_count"]
     duration = params ["duration"]
     shot_count = params ["shot_count"]
 

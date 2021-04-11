@@ -25,7 +25,8 @@ def main(circuit):
     }
 
     # Run on the quantum computer
-    controls = [waves_list, waves_list, waves_list]
+    controls = [waves_list, waves_list, waves_list] #P * N * 2
+    
     repetitions, experiment_results = real_q.run_on_q(controls, params)
 
     repetitions = np.split(np.array(repetitions), len(controls))
