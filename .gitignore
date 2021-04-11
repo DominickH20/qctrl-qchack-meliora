@@ -8,7 +8,9 @@
 
 .env
 examples/.env
-work_dom/.env
-work_mike/.env
-work_ryan/.env
-work_busaba/.env
+scratch_work/work_dom/.env
+scratch_work/work_mike/.env
+scratch_work/work_ryan/.env
+scratch_work/work_busaba/.env
+
+production_code/.env
