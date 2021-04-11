@@ -29,7 +29,6 @@ def run_on_q(phases_list, amplitudes_list, params):
     waves_list = zip(phases_list, amplitudes_list)
 
     # Extract parameters
-    control_count = params ["control_count"]
     segment_count = params ["segment_count"]
     duration = params ["duration"]
     shot_count = params ["shot_count"]
@@ -50,4 +49,4 @@ def run_on_q(phases_list, amplitudes_list, params):
         shot_count=shot_count,
     )
 
-    return repetitions, experiment_results
+    return repetitions * len(phases_list), experiment_results

@@ -27,7 +27,6 @@ def main(circuit):
     # Define parameters for run
     max_drive_amplitude = 2 * np.pi * 20                       # MHz
     params = {
-        "control_count": 1,
         "segment_count": 64,
         "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
         "shot_count": 10,
