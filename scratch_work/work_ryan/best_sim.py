@@ -17,8 +17,12 @@ def get_best():
   """ Returns the most promising initial wave lengths for the NOT and H gates. """
 
   best_h = 1
-  best_not = 0
-  runs = 10
+  best_not = 1
+  runs = 3
+
+  np.save("H_START_S_BEST.npy",0)
+  np.save("NOT_START_S_BEST.npy",0)
+
   for i in range(runs):
     
     # Run Sim-H
@@ -27,15 +31,19 @@ def get_best():
     sim_not.run_main_not()[0]
 
     hloss = run_waves("H")
+    print("Loss of H Gate")
+    print(hloss)
     nloss = run_waves("N")
+    print("Loss of NOT Gate")
+    print(nloss)
 
     # If this is a better H value, update
-    if (abs(hloss - 0.5) < best_h):
+    if (hloss < best_h):
       best_h = hloss
       overwriteH()
 
     # If this is a better NOT value, update
-    if (n < best_n):
+    if (nloss < best_not):
       best_not = nloss
       overwriteNOT()
 
@@ -51,7 +59,7 @@ def run_waves(circuit):
     if circuit == "H":
         waves_list = np.load("H_START_S.npy")
     elif circuit == "N":
-        waves_list = np.load("N_START_S.npy")
+        waves_list = np.load("NOT_START_S.npy")
     else:
         print("Invalid circuit ID: {}".format(circuit))
         exit(1)
@@ -59,9 +67,9 @@ def run_waves(circuit):
     # Define parameters for run
     max_drive_amplitude = 2 * np.pi * 20                       # MHz
     params = {
-        "segment_count": 64,
+        "segment_count": waves_list.shape[0],
         "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
-        "shot_count": 10,
+        "shot_count": 1024,
     }
 
     # Run on the quantum computer
@@ -98,22 +106,13 @@ def run_waves(circuit):
 
 def overwriteNOT():
   # open both files
-  with open('NOT_START_S.npy','r') as firstfile, open('NOT_START_S_BEST.npy','w') as secondfile:
-        
-    # read content from first file
-    for line in firstfile:
-              
-      # write content to second file
-      secondfile.write(line)
+
+  temp_not = np.load('NOT_START_S.npy')
+  np.save("NOT_START_S_BEST.npy",temp_not)
 
 def overwriteH():
   # open both files
-  with open('H_START_S.npy','r') as firstfile, open('H_START_S_BEST.npy','w') as secondfile:
-        
-    # read content from first file
-    for line in firstfile:
-              
-      # write content to second file
-      secondfile.write(line)
+  temp_h = np.load('H_START_S.npy')
+  np.save("H_START_S_BEST.npy",temp_h)
   
-# get_best()
+get_best()

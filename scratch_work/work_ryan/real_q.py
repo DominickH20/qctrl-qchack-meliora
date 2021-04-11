@@ -37,7 +37,9 @@ def run_on_q(waves_list, params):
     controls = []
     for wave in waves_list:
         # Create a random string of complex numbers for each controls.
-        values = wave [0] * np.exp(1j * wave [1])
+        max_amp = max(wave[:,0])
+        wave[:,0] = wave[:,0]/max_amp
+        values = wave[:,0] * np.exp(1j * wave [:,1])
 
         # Iterate through possible repetitions
         for rep in repetitions:

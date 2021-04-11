@@ -328,7 +328,7 @@ def run_main_h (best_run = 1.01):
         cost_node_name="infidelity",
         output_node_names=["Omega"],
         graph=graph,
-        optimization_count=40,
+        optimization_count=20,
     )
 
     # In[6]:
