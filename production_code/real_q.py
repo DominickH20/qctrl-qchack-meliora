@@ -37,7 +37,7 @@ def run_on_q(waves_list, params):
     controls = []
     for wave in waves_list:
         # Create a random string of complex numbers for each controls.
-        values = wave [0] * np.exp(1j * wave [1])
+        values = wave [:,0] * np.exp(1j * wave [:,1])
 
         # Iterate through possible repetitions
         for rep in repetitions:
@@ -49,3 +49,28 @@ def run_on_q(waves_list, params):
     )
 
     return repetitions * len(waves_list), experiment_results
+
+
+def run_on_q_single(wave, params):
+    qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
+
+    # Extract parameters
+    duration = params ["duration"]
+    shot_count = params ["shot_count"]
+
+    repetitions = [1, 4, 16, 32, 64]
+
+    controls = []
+    # Create a random string of complex numbers for each controls.
+    values = wave [:,0] * np.exp(1j * wave [:,1])
+
+    # Iterate through possible repetitions
+    for rep in repetitions:
+        controls.append({"duration": duration, "values": values, "repetition_count": rep})
+
+    experiment_results = qctrl.functions.calculate_qchack_measurements(
+        controls=controls,
+        shot_count=shot_count,
+    )
+
+    return repetitions * 1, experiment_results
