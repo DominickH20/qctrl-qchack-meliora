@@ -101,8 +101,9 @@ def interp (xp, xt, x):
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
 
-
-qctrl = Qctrl()
+from dotenv import dotenv_values
+config = dotenv_values(".env")
+qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
 
 # In[2]:
 
@@ -373,12 +374,12 @@ def run_main_not():
 
     smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
 
-    # with open("samplitude.txt", "w") as samplitude_f:
-    #     for val in smoothed_amp:
-    #         samplitude_f.write("{}\n".format(val))
-    # with open("sphase.txt", "w") as sphase_f:
-    #     for val in smoothed_phase:
-    #         sphase_f.write("{}\n".format(np.angle(val)))
+    with open("samplitude.txt", "w") as samplitude_f:
+        for val in smoothed_amp:
+            samplitude_f.write("{}\n".format(val))
+    with open("sphase.txt", "w") as sphase_f:
+        for val in smoothed_phase:
+            sphase_f.write("{}\n".format(np.angle(val)))
 
     smoothed_amp_phase = np.stack((np.absolute(smoothed_amp),np.angle(smoothed_phase)),axis=1)
 
@@ -412,18 +413,20 @@ def run_main_not():
         absolutes += [np.absolute(val)]
     max_amp = max(absolutes)
 
+    absolutes = absolutes / max_amp
+
 
 
     # Write parameters to file
 
-    # with open("amplitude.txt", "w") as amplitude_f:
-    #     for val in absolutes:
-    #         amplitude_f.write("{}\n".format(val / max_amp))
-    # with open("phase.txt", "w") as phase_f:
-    #     for val in optimized_values:
-    #         phase_f.write("{}\n".format(np.angle(val)))
+    with open("amplitude.txt", "w") as amplitude_f:
+        for val in absolutes:
+            amplitude_f.write("{}\n".format(val))
+    with open("phase.txt", "w") as phase_f:
+        for val in optimized_values:
+            phase_f.write("{}\n".format(np.angle(val)))
 
-    unsmoothed_amp_phase = np.stack((absolutes / max_amp,np.angle(optimized_values)),axis=1)
+    unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
 
     print(unsmoothed_amp_phase.shape)
 

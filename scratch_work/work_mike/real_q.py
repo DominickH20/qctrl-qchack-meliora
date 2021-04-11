@@ -31,7 +31,7 @@ qctrl = Qctrl()
 
 max_drive_amplitude = 2 * np.pi * 20                  # MHz
 control_count = 1
-segment_count = 32
+segment_count = 128
 duration = 5 * np.pi / (max_drive_amplitude) *1000   # Convert to ns
 shot_count = 1024
 
@@ -41,10 +41,10 @@ shot_count = 1024
 amplitudes = []
 phases = []
 # Read in lists of parameters
-with open("amplitude.txt", "r") as real_f:
+with open("samplitude.txt", "r") as real_f:
     for line in real_f:
         amplitudes += [float(line.strip())]
-with open("phase.txt", "r") as imag_f:
+with open("sphase.txt", "r") as imag_f:
     for line in imag_f:
         phases += [float(line.strip())]
 amplitudes = np.array(amplitudes)

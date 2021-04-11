@@ -101,9 +101,8 @@ def interp (xp, xt, x):
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
 
-from dotenv import dotenv_values
-config = dotenv_values(".env")
-qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
+
+qctrl = Qctrl()
 
 # In[2]:
 
@@ -413,20 +412,18 @@ def run_main_not():
         absolutes += [np.absolute(val)]
     max_amp = max(absolutes)
 
-    absolutes = absolutes / max_amp
-
 
 
     # Write parameters to file
 
     # with open("amplitude.txt", "w") as amplitude_f:
     #     for val in absolutes:
-    #         amplitude_f.write("{}\n".format(val))
+    #         amplitude_f.write("{}\n".format(val / max_amp))
     # with open("phase.txt", "w") as phase_f:
     #     for val in optimized_values:
     #         phase_f.write("{}\n".format(np.angle(val)))
 
-    unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
+    unsmoothed_amp_phase = np.stack((absolutes / max_amp,np.angle(optimized_values)),axis=1)
 
     print(unsmoothed_amp_phase.shape)
 
