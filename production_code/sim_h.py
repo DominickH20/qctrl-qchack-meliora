@@ -419,7 +419,7 @@ def run_main_h ():
 
     # with open("amplitude.txt", "w") as amplitude_f:
     #     for val in absolutes:
-    #         amplitude_f.write("{}\n".format(val / max_amp))
+    #         amplitude_f.write("{}\n".format(val))
     # with open("phase.txt", "w") as phase_f:
     #     for val in optimized_values:
     #         phase_f.write("{}\n".format(np.angle(val)))
