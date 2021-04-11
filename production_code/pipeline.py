@@ -33,7 +33,7 @@ def QCTRL_loss(controls, params):
             if params["circuit"] == "H":
                 loss_sum += ((p0 - 0.5) ** 2) / repetition_count
                 loss_sum += ((p1 - 0.5) ** 2) / repetition_count
-            elif params["circuit"] == "N":
+            elif params["circuit"] == "NOT":
                 loss_sum += ((p0 - 0) ** 2) / repetition_count
                 loss_sum += ((p1 - 1) ** 2) / repetition_count
         losses += [loss_sum]
@@ -41,7 +41,7 @@ def QCTRL_loss(controls, params):
 
 
 #initialize parameters
-gate_type = "H"
+gate_type = "H" #H or NOT
 seed = load_seed(gate_type+"_START_S.npy") #load_seed(gate_type+"_START_U.npy")
 segment_count = seed.shape[0]
 search_params = {
@@ -69,5 +69,4 @@ loss_params = {
 best, score = search.genetic_gaussian_search(QCTRL_loss, seed, search_params, loss_params)
 print('Done! THE BEST IS:')
 print('f(%s \n) = %f' % (search.np_2d_print(best), score))
-
 real_q.print_results_single(best, loss_params)

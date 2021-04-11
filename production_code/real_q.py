@@ -104,7 +104,7 @@ def print_results_single(wave, params):
                 loss_sum += ((p0 - 0.5) ** 2) / repetition_count
                 loss_sum += ((p1 - 0.5) ** 2) / repetition_count
                 loss_list.append(((p0 - 0.5) ** 2) / repetition_count + ((p1 - 0.5) ** 2) / repetition_count)
-            elif params["circuit"] == "N":
+            elif params["circuit"] == "NOT":
                 loss_sum += ((p0 - 0) ** 2) / repetition_count
                 loss_sum += ((p1 - 1) ** 2) / repetition_count
                 loss_list.append(((p0 - 0) ** 2) / repetition_count + ((p1 - 1) ** 2) / repetition_count)
