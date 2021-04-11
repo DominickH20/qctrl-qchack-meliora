@@ -7,6 +7,7 @@ import numpy as np
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
 
+#configure environment
 from dotenv import dotenv_values
 config = dotenv_values(".env")
 
@@ -25,6 +26,7 @@ config = dotenv_values(".env")
 # You will probably want to change these values later depending on how you approach the challenge. For instance, the larger the `shot_count` is, the more measurements we get out of the qubit for each control (we only keep it small here so that the experiment results are easier to visualize).
 #
 
+#run BATCH on Qubit, Waves List is (Pop_size * seg_count * 2)
 def run_on_q(waves_list, params):
     qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
 
@@ -34,6 +36,7 @@ def run_on_q(waves_list, params):
 
     repetitions = [1, 4, 16, 32, 64]
 
+    #build controls
     controls = []
     for wave in waves_list:
         # Create a random string of complex numbers for each controls.
@@ -45,6 +48,7 @@ def run_on_q(waves_list, params):
         for rep in repetitions:
             controls.append({"duration": duration, "values": values, "repetition_count": rep})
 
+    #conduct experiment
     experiment_results = qctrl.functions.calculate_qchack_measurements(
         controls=controls,
         shot_count=shot_count,
@@ -52,7 +56,7 @@ def run_on_q(waves_list, params):
 
     return repetitions * len(waves_list), experiment_results
 
-
+#run SINGLE on Qubit, Wavet is (seg_count * 2)
 def run_on_q_single(wave, params):
     qctrl = Qctrl(email=config['EMAIL'], password=config['PW'])
 
@@ -60,10 +64,9 @@ def run_on_q_single(wave, params):
     duration = params ["duration"]
     shot_count = params ["shot_count"]
 
+    #build controls
     repetitions = [1, 4, 16, 32, 64]
-
     controls = []
-
     max_amp = max(wave[:,0])
     wave[:,0] = wave[:,0]/max_amp
     values = wave[:,0] * np.exp(1j * wave[:,1])
@@ -72,6 +75,7 @@ def run_on_q_single(wave, params):
     for rep in repetitions:
         controls.append({"duration": duration, "values": values, "repetition_count": rep})
 
+    #run experiment
     experiment_results = qctrl.functions.calculate_qchack_measurements(
         controls=controls,
         shot_count=shot_count,
@@ -79,10 +83,14 @@ def run_on_q_single(wave, params):
 
     return repetitions * 1, experiment_results
 
+#print loss and probability info for a single wave (run on qubit)
 def print_results_single(wave, params):
+    #conduct experiment
     repetitions, experiment_results = run_on_q_single(wave, params)
     repetitions = np.split(np.array(repetitions), 1)
     measurements = np.split(np.array(experiment_results.measurements), 1)
+    
+    #build losses constructed off of probabilty outputs
     losses = []
     loss_list = []
     for i in range(len(repetitions)):
@@ -100,6 +108,7 @@ def print_results_single(wave, params):
                 f"With {repetition_count:2d} repetitions: P(|0>) = {p0:.2f}, P(|1>) = {p1:.2f}, P(|2>) = {p2:.2f}"
             )
 
+            #construct and store loss
             if params["circuit"] == "H":
                 loss_sum += ((p0 - 0.5) ** 2) / repetition_count
                 loss_sum += ((p1 - 0.5) ** 2) / repetition_count
@@ -109,6 +118,7 @@ def print_results_single(wave, params):
                 loss_sum += ((p1 - 1) ** 2) / repetition_count
                 loss_list.append(((p0 - 0) ** 2) / repetition_count + ((p1 - 1) ** 2) / repetition_count)
 
+        #output loss list and the best total loss (sum of all of them)
         losses += [loss_sum]
         print("LOSS LIST: ", loss_list)
         print("BEST LOSS: ", losses[0]) #there is one loss
