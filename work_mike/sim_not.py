@@ -228,45 +228,6 @@ def upsample2 (x, k):
 
   return y.squeeze()
 
-
-# if __name__ == '__main__':
-#   import matplotlib.pyplot as plt
-
-#   F     = 10.
-#   Fs    = 100. * F
-#   dt    = 1. / Fs
-
-#   t = np.arange (0,  2 * np.pi, dt)
-#   s = np.sin (F * t)
-
-
-#   mFs   = 3 * F
-#   mt    = np.arange (min(t), max(t), 1. / mFs)
-#   ms    = np.sin (F * mt)
-
-#   k = 16
-#   us = upsample3 (ms, k)
-#   ut = np.linspace (min(mt), max(mt), len(us))
-
-#   plt.figure ()
-#   plt.plot (t, s, 'b', label = 'high Fs')
-#   plt.plot (mt, ms, 'r', label = 'low Fs')
-#   plt.plot (ut, us, 'g', label = 'resampled')
-
-
-#   # diff
-#   uus = np.interp (t, ut, us)
-#   dd  = uus - s
-
-#   plt.plot (t, dd, 'k', label = 'diff')
-
-#   plt.legend ()
-
-#   plt.show ()
-
-
-
-
 # In[1]:
 
 import matplotlib.pyplot as plt
