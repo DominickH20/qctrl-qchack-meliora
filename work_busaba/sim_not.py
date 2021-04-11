@@ -142,8 +142,8 @@ max_drive_amplitude = 2 * np.pi * 20  # MHz
 dephasing_error = -2 * 2 * np.pi  # MHz
 
 # 3. Amplitude error
-amplitude_i_error = 0.98
-amplitude_q_error = 1.03
+amplitude_i_error = 0.99
+amplitude_q_error = 1.01
 
 # 4. Control line bandwidth limit
 cut_off_frequency = 2 * np.pi * 10  # MHz
@@ -289,27 +289,6 @@ for i in range(len(optimized_values)):
         smoothed += [optimized_values [i]]
         smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
 
-# group = (segment_count // 256)
-# smoothed = []
-# # Smooth values
-# for i in range(len(optimized_values) // group):
-#     index = i * group
-#     avg_r = 0
-#     avg_i = 0
-#     for j in range(index, index + group):
-#         avg_r += optimized_values [j].real
-#         avg_i += optimized_values [j].imag
-#     avg_r /= group
-#     avg_i /= group
-#     smoothed += [avg_r + 1j * avg_i]
-
-# fig = plt.figure()
-# plot_controls(
-#     fig,
-#     controls={
-#         "$\\Omega$": smoothed,
-#     }, polar=False)
-# plt.show()
 
 # In[10]:
 
