@@ -1,10 +1,236 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+#! /usr/bin/python
+#
+# Author: Gaute Hope (gaute.hope@nersc.no) / 2015
+#
+# based on example from matlab sinc function and
+# interpolate.m by H. Hobæk (1994).
+#
+# this implementation is similar to the matlab sinc-example, but
+# calculates the values sequentially and not as a single matrix
+# matrix operation for all the values.
+#
+
+import scipy as sc
+import numpy as np
+
+def resample (x, k):
+  """
+  Resample the signal to the given ratio using a sinc kernel
+
+  input:
+
+    x   a vector or matrix with a signal in each row
+    k   ratio to resample to
+
+    returns
+
+    y   the up or downsampled signal
+
+    when downsampling the signal will be decimated using scipy.signal.decimate
+  """
+
+  if k < 1:
+    raise NotImplementedError ('downsampling is not implemented')
+
+  if k == 1:
+    return x # nothing to do
+
+  return upsample (x, k)
+
+def upsample (x, k):
+  """
+  Upsample the signal to the given ratio using a sinc kernel
+
+  input:
+
+    x   a vector or matrix with a signal in each row
+    k   ratio to resample to
+
+    returns
+
+    y   the up or downsampled signal
+
+    when downsampling the signal will be decimated using scipy.signal.decimate
+  """
+
+  assert k >= 1, 'k must be equal or greater than 1'
+
+  mn = x.shape
+  if len(mn) == 2:
+    m = mn[0]
+    n = mn[1]
+  elif len(mn) == 1:
+    m = 1
+    n = mn[0]
+  else:
+    raise ValueError ("x is greater than 2D")
+
+  nn = n * k
+
+  xt = np.linspace (1, n, n)
+  xp = np.linspace (1, n, nn)
+
+  return interp (xp, xt, x)
+
+def upsample3 (x, k, workers = None):
+  """
+  Like upsample, but uses the multi-threaded interp3
+  """
+
+  assert k >= 1, 'k must be equal or greater than 1'
+
+  mn = x.shape
+  if len(mn) == 2:
+    m = mn[0]
+    n = mn[1]
+  elif len(mn) == 1:
+    m = 1
+    n = mn[0]
+  else:
+    raise ValueError ("x is greater than 2D")
+
+  nn = n * k
+
+  xt = np.linspace (1, n, n)
+  xp = np.linspace (1, n, nn)
+
+  return interp3 (xp, xt, x, workers)
+
+
+def interp (xp, xt, x):
+  """
+  Interpolate the signal to the new points using a sinc kernel
+
+  input:
+  xt    time points x is defined on
+  x     input signal column vector or matrix, with a signal in each row
+  xp    points to evaluate the new signal on
+
+  output:
+  y     the interpolated signal at points xp
+  """
+
+  mn = x.shape
+  if len(mn) == 2:
+    m = mn[0]
+    n = mn[1]
+  elif len(mn) == 1:
+    m = 1
+    n = mn[0]
+  else:
+    raise ValueError ("x is greater than 2D")
+
+  nn = len(xp)
+
+  y = np.zeros((m, nn))
+
+  for (pi, p) in enumerate (xp):
+    si = np.tile(np.sinc (xt - p), (m, 1))
+    y[:, pi] = np.sum(si * x)
+
+  return y.squeeze ()
+
+default_workers = 6
+def interp3 (xp, xt, x, workers = default_workers):
+  """
+  Interpolate the signal to the new points using a sinc kernel
+
+  Like interp, but splits the signal into domains and calculates them
+  separately using multiple threads.
+
+  input:
+  xt    time points x is defined on
+  x     input signal column vector or matrix, with a signal in each row
+  xp    points to evaluate the new signal on
+  workers  number of threaded workers to use (default: 16)
+
+  output:
+  y     the interpolated signal at points xp
+  """
+
+  mn = x.shape
+  if len(mn) == 2:
+    m = mn[0]
+    n = mn[1]
+  elif len(mn) == 1:
+    m = 1
+    n = mn[0]
+  else:
+    raise ValueError ("x is greater than 2D")
+
+  nn = len(xp)
+
+  y = np.zeros((m, nn))
+
+  # from upsample
+  if workers is None: workers = default_workers
+
+  xxp = np.array_split (xp, workers)
+
+  from concurrent.futures import ThreadPoolExecutor
+  import concurrent.futures
+
+  def approx (_xp, strt):
+    for (pi, p) in enumerate (_xp):
+      si = np.tile (np.sinc (xt - p), (m, 1))
+      y[:, strt + pi] = np.sum (si * x)
+
+  jobs = []
+  with ThreadPoolExecutor (max_workers = workers) as executor:
+    strt = 0
+    for w in np.arange (0, workers):
+      f = executor.submit (approx, xxp[w], strt)
+      strt = strt + len (xxp[w])
+      jobs.append (f)
+
+
+  concurrent.futures.wait (jobs)
+
+  return y.squeeze ()
+
+def upsample2 (x, k):
+  """
+  Upsample the signal to the new points using a sinc kernel. The
+  interpolation is done using a matrix multiplication.
+
+  Requires a lot of memory, but is fast.
+
+  input:
+  xt    time points x is defined on
+  x     input signal column vector or matrix, with a signal in each row
+  xp    points to evaluate the new signal on
+
+  output:
+  y     the interpolated signal at points xp
+  """
+
+  mn = x.shape
+
+  if len(mn) == 2:
+    m = mn[0]
+    n = mn[1]
+  elif len(mn) == 1:
+    m = 1
+    n = mn[0]
+  else:
+    raise ValueError ("x is greater than 2D")
+
+  nn = n * k
+
+  [T, Ts]  = np.mgrid[1:n:nn*1j, 1:n:n*1j]
+  TT = Ts - T
+  del T, Ts
+
+  y = np.sinc(TT).dot (x.reshape(n, 1))
+
+  return y.squeeze()
+
 # In[1]:
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
@@ -142,8 +368,8 @@ max_drive_amplitude = 2 * np.pi * 20  # MHz
 dephasing_error = -2 * 2 * np.pi  # MHz
 
 # 3. Amplitude error
-amplitude_i_error = 0.99
-amplitude_q_error = 1.01
+amplitude_i_error = 0.98
+amplitude_q_error = 1.03
 
 # 4. Control line bandwidth limit
 cut_off_frequency = 2 * np.pi * 10  # MHz
@@ -157,8 +383,9 @@ n = np.diag([0, 1])
 initial_state = np.array([[1], [0]])
 
 # Extra constants used for optimization
-segment_count = 64
-duration = 5 * np.pi / (max_drive_amplitude)
+# control_count = 5
+segment_count = 64 # 16
+duration = 5 * np.pi / (max_drive_amplitude) # 30.0
 ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
 
@@ -168,8 +395,8 @@ ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
 with qctrl.create_graph() as graph:
     # Create optimizable modulus and phase.
-    values = qctrl.operations.bounded_optimization_variable(
-        count=segment_count, lower_bound=0, upper_bound=1,
+    values = qctrl.operations.anchored_difference_bounded_variables(
+        count=segment_count, lower_bound=0, upper_bound=1, difference_bound = 0.1
     ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
         count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
     ))
@@ -251,7 +478,10 @@ plt.show()
 # Test optimized pulse on more realistic qubit simulation
 
 optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
+print("Optimized Values:")
+print(optimized_values)
 result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
+
 
 # In[8]:
 realized_not_gate = result["unitary"]
@@ -266,35 +496,51 @@ print("Ideal NOT Gate:")
 print(ideal_not_gate)
 print("NOT Gate Error: " + str(not_error))
 
+# In[81]
+# smoothed_real = upsample(optimized_values.real,2)
+# smoothed_imag = upsample(optimized_values.imag,2)
+smoothed_amp = upsample(np.absolute(optimized_values),2)
+
+smoothed_phase = []
+for i in optimized_values:
+    smoothed_phase += [i]
+    smoothed_phase += [i]
+# Normalizing the amplitudes
+max_amp = max(smoothed_amp)
+
+smoothed_amp = smoothed_amp / max_amp
+
+# smoothed = smoothed_real + 1j * smoothed_imag
+smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
+
+
+with open("samplitude.txt", "w") as samplitude_f:
+    for val in smoothed_amp:
+        samplitude_f.write("{}\n".format(val))
+with open("sphase.txt", "w") as sphase_f:
+    for val in smoothed_phase:
+        sphase_f.write("{}\n".format(np.angle(val)))
+
+result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)
+
+# In[82]:
+realized_not_gate = result["unitary"]
+not_error = error_norm(realized_not_gate, ideal_not_gate)
+
+not_measurements = result["measurements"]
+not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+
+print("Realised Smoothed NOT Gate:")
+print(realized_not_gate)
+print("Ideal NOT Gate:")
+print(ideal_not_gate)
+print("Smoothed NOT Gate Error: " + str(not_error))
+
 # In[9]:
-
-# fig = plt.figure()
-# plot_controls(
-#     fig,
-#     controls={
-#         "$\\Omega$": optimized_values,
-#     }, polar=False)
-# plt.show()
-
-smoothed = []
-for i in range(len(optimized_values)):
-    if i == 0:
-        smoothed += [optimized_values [i]]
-        smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
-    elif i == len(optimized_values) - 1:
-        smoothed += [(optimized_values [i - 1] + optimized_values [i]) / 2]
-        smoothed += [optimized_values [i]]
-    else:
-        smoothed += [(optimized_values [i - 1] + optimized_values [i]) / 2]
-        smoothed += [optimized_values [i]]
-        smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
-
-
-# In[10]:
 
 # Normalizing the amplitudes
 absolutes = []
-for val in smoothed:
+for val in optimized_values:
     absolutes += [np.absolute(val)]
 max_amp = max(absolutes)
 
@@ -303,5 +549,9 @@ with open("amplitude.txt", "w") as amplitude_f:
     for val in absolutes:
         amplitude_f.write("{}\n".format(val / max_amp))
 with open("phase.txt", "w") as phase_f:
-    for val in smoothed:
+    for val in optimized_values:
         phase_f.write("{}\n".format(np.angle(val)))
+
+
+
+

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-#! /usr/bin/python
-#
 # Author: Gaute Hope (gaute.hope@nersc.no) / 2015
 #
 # based on example from matlab sinc function and
@@ -227,49 +225,10 @@ def upsample2 (x, k):
   y = np.sinc(TT).dot (x.reshape(n, 1))
 
   return y.squeeze()
-
-
-# if __name__ == '__main__':
-#   import matplotlib.pyplot as plt
-
-#   F     = 10.
-#   Fs    = 100. * F
-#   dt    = 1. / Fs
-
-#   t = np.arange (0,  2 * np.pi, dt)
-#   s = np.sin (F * t)
-
-
-#   mFs   = 3 * F
-#   mt    = np.arange (min(t), max(t), 1. / mFs)
-#   ms    = np.sin (F * mt)
-
-#   k = 16
-#   us = upsample3 (ms, k)
-#   ut = np.linspace (min(mt), max(mt), len(us))
-
-#   plt.figure ()
-#   plt.plot (t, s, 'b', label = 'high Fs')
-#   plt.plot (mt, ms, 'r', label = 'low Fs')
-#   plt.plot (ut, us, 'g', label = 'resampled')
-
-
-#   # diff
-#   uus = np.interp (t, ut, us)
-#   dd  = uus - s
-
-#   plt.plot (t, dd, 'k', label = 'diff')
-
-#   plt.legend ()
-
-#   plt.show ()
-
-
-
-
 # In[1]:
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from qctrlvisualizer import get_qctrl_style, plot_controls
 from qctrl import Qctrl
@@ -423,9 +382,9 @@ initial_state = np.array([[1], [0]])
 
 # Extra constants used for optimization
 # control_count = 5
-segment_count = 64 # 16
+segment_count = 32 # 16
 duration = 5 * np.pi / (max_drive_amplitude) # 30.0
-ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
+ideal_h_gate = (1 / np.sqrt(2)) * np.array([[1, 1], [1, -1]])
 
 
 # We now create a list of controls to send to the qubit. Each of them is a dictionary with a `duration` (how long the pulse is) and an array of (complex) `values` indicating the strength of the pulse in piecewise-constant intervals. Here we use random pulses, so we do not expect them to perform very well at all or implement any particular gate.
@@ -435,7 +394,7 @@ ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 with qctrl.create_graph() as graph:
     # Create optimizable modulus and phase.
     values = qctrl.operations.anchored_difference_bounded_variables(
-        count=segment_count, lower_bound=0, upper_bound=1, difference_bound = 0.1
+        count=segment_count, lower_bound=0, upper_bound=1,difference_bound = 0.5,
     ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
         count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
     ))
@@ -482,9 +441,9 @@ with qctrl.create_graph() as graph:
     )
 
     # Construct Target operator
-    target_operator = qctrl.operations.target(operator=ideal_not_gate)
+    target_operator = qctrl.operations.target(operator=ideal_h_gate)
 
-    # Calculate infidelity between target NOT gate and final unitary
+    # Calculate infidelity between target H gate and final unitary
     indfidelity = qctrl.operations.infidelity_pwc(
         hamiltonian=hamiltonian,
         target_operator=target_operator,
@@ -498,6 +457,7 @@ optimization_result = qctrl.functions.calculate_optimization(
     cost_node_name="infidelity",
     output_node_names=["Omega"],
     graph=graph,
+    optimization_count=40,
 )
 
 # In[6]:
@@ -517,31 +477,30 @@ plt.show()
 # Test optimized pulse on more realistic qubit simulation
 
 optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
-print("Optimized Values:")
-print(optimized_values)
 result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
-
 # In[8]:
-realized_not_gate = result["unitary"]
-not_error = error_norm(realized_not_gate, ideal_not_gate)
+realized_h_gate = result["unitary"]
+h_error = error_norm(realized_h_gate, ideal_h_gate)
 
-not_measurements = result["measurements"]
-not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
+h_measurements = result["measurements"]
+h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
 
-print("Realised NOT Gate:")
-print(realized_not_gate)
-print("Ideal NOT Gate:")
-print(ideal_not_gate)
-print("NOT Gate Error: " + str(not_error))
+print("Realised H Gate:")
+print(realized_h_gate)
+print("Ideal H Gate:")
+print(ideal_h_gate)
+print("H Gate Error: " + str(h_error))
 
 # In[81]
 # smoothed_real = upsample(optimized_values.real,2)
 # smoothed_imag = upsample(optimized_values.imag,2)
-smoothed_amp = upsample(np.absolute(optimized_values),2)
+smoothed_amp = upsample(np.absolute(optimized_values),4)
 
 smoothed_phase = []
 for i in optimized_values:
+    smoothed_phase += [i]
+    smoothed_phase += [i]
     smoothed_phase += [i]
     smoothed_phase += [i]
 # Normalizing the amplitudes
@@ -564,16 +523,16 @@ result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots
 
 # In[82]:
 realized_not_gate = result["unitary"]
-not_error = error_norm(realized_not_gate, ideal_not_gate)
+not_error = error_norm(realized_not_gate, ideal_h_gate)
 
 not_measurements = result["measurements"]
 not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
 
-print("Realised Smoothed NOT Gate:")
-print(realized_not_gate)
-print("Ideal NOT Gate:")
-print(ideal_not_gate)
-print("Smoothed NOT Gate Error: " + str(not_error))
+print("Realised Smoothed H Gate:")
+print(realized_h_gate)
+print("Ideal H Gate:")
+print(ideal_h_gate)
+print("Smoothed H Gate Error: " + str(not_error))
 
 # In[9]:
 
@@ -590,7 +549,4 @@ with open("amplitude.txt", "w") as amplitude_f:
 with open("phase.txt", "w") as phase_f:
     for val in optimized_values:
         phase_f.write("{}\n".format(np.angle(val)))
-
-
-
 

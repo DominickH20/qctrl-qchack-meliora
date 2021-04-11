@@ -27,13 +27,13 @@ def main(circuit):
     # Define parameters for run
     max_drive_amplitude = 2 * np.pi * 20                       # MHz
     params = {
-        "control_count": 1,
         "segment_count": 64,
         "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
-        "shot_count": 4096,
+        "shot_count": 10,
     }
 
-    repetitions, experiment_results = real_q.run_on_q(phases, amplitudes, params)
+    # Run on the quantum computer
+    repetitions, experiment_results = real_q.run_on_q([phases, phases, phases], [amplitudes, amplitudes, amplitudes], params)
 
     for repetition_count, measurement_counts in zip(
         repetitions, experiment_results.measurements

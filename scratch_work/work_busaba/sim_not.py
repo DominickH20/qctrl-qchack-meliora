@@ -142,8 +142,8 @@ max_drive_amplitude = 2 * np.pi * 20  # MHz
 dephasing_error = -2 * 2 * np.pi  # MHz
 
 # 3. Amplitude error
-amplitude_i_error = 0.98
-amplitude_q_error = 1.03
+amplitude_i_error = 0.99
+amplitude_q_error = 1.01
 
 # 4. Control line bandwidth limit
 cut_off_frequency = 2 * np.pi * 10  # MHz
@@ -157,10 +157,9 @@ n = np.diag([0, 1])
 initial_state = np.array([[1], [0]])
 
 # Extra constants used for optimization
-# control_count = 5
-segment_count = 64 # 16
-duration = 5 * np.pi / (max_drive_amplitude) # 30.0
-ideal_h_gate = (1 / np.sqrt(2)) * np.array([[1, 1], [1, -1]])
+segment_count = 64
+duration = 5 * np.pi / (max_drive_amplitude)
+ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
 
 # We now create a list of controls to send to the qubit. Each of them is a dictionary with a `duration` (how long the pulse is) and an array of (complex) `values` indicating the strength of the pulse in piecewise-constant intervals. Here we use random pulses, so we do not expect them to perform very well at all or implement any particular gate.
@@ -217,9 +216,9 @@ with qctrl.create_graph() as graph:
     )
 
     # Construct Target operator
-    target_operator = qctrl.operations.target(operator=ideal_h_gate)
+    target_operator = qctrl.operations.target(operator=ideal_not_gate)
 
-    # Calculate infidelity between target H gate and final unitary
+    # Calculate infidelity between target NOT gate and final unitary
     indfidelity = qctrl.operations.infidelity_pwc(
         hamiltonian=hamiltonian,
         target_operator=target_operator,
@@ -252,26 +251,88 @@ plt.show()
 # Test optimized pulse on more realistic qubit simulation
 
 optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
-result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=4096, repetitions=7)
+result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
 # In[8]:
-realized_h_gate = result["unitary"]
-h_error = error_norm(realized_h_gate, ideal_h_gate)
+realized_not_gate = result["unitary"]
+not_error = error_norm(realized_not_gate, ideal_not_gate)
 
-h_measurements = result["measurements"]
-h_probability, h_standard_error = estimate_probability_of_one(h_measurements)
+not_measurements = result["measurements"]
+not_probability, not_standard_error = estimate_probability_of_one(not_measurements)
 
-print("Realised H Gate:")
-print(realized_h_gate)
-print("Ideal H Gate:")
-print(ideal_h_gate)
-print("H Gate Error: " + str(h_error))
+print("Realised NOT Gate:")
+print(realized_not_gate)
+print("Ideal NOT Gate:")
+print(ideal_not_gate)
+print("NOT Gate Error: " + str(not_error))
 
 # In[9]:
 
+smoothed_r = []
+smoothed_i = []
+smoothed = []
+org_t = []
+sth_t = []
+count = 0
+for i in range(len(optimized_values)):
+    if i == 0:
+        smoothed_r += [optimized_values [i].real]
+        smoothed_i += [optimized_values [i].imag]
+        smoothed += [optimized_values [i]]
+
+        smoothed_r += [(optimized_values [i].real + optimized_values [i + 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i + 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        org_t += [count]
+        sth_t += [count, count + 1]
+        count += 2
+    elif i == len(optimized_values) - 1:
+        smoothed_r += [(optimized_values [i].real + optimized_values [i - 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i - 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        smoothed_r += [optimized_values [i].real]
+        smoothed_i += [optimized_values [i].imag]
+        smoothed += [optimized_values [i]]
+
+        sth_t += [count, count + 1]
+        org_t += [count + 1]
+        count += 2
+    else:
+        smoothed_r += [(optimized_values [i].real + optimized_values [i - 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i - 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        smoothed_r += [optimized_values [i].real]
+        smoothed_i += [optimized_values [i].imag]
+        smoothed += [optimized_values [i]]
+
+        smoothed_r += [(optimized_values [i].real + optimized_values [i + 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i + 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        sth_t += [count, count + 1, count + 2]
+        org_t += [count + 1]
+        count += 3
+    print(smoothed_r [-3:])
+print(len(smoothed_r))
+
+fig = plt.figure()
+plt.title('Reals Smoothing')
+plt.xlabel('Segment')
+plt.ylabel('Real Component')
+plt.grid(True)
+# plt.plot(org_t, [segment.real for segment in optimized_values], color='red', label="org")
+plt.plot(sth_t, smoothed_r, color='green', label="sth")
+plt.show()
+
+
+# In[10]:
+
 # Normalizing the amplitudes
 absolutes = []
-for val in optimized_values:
+for val in smoothed:
     absolutes += [np.absolute(val)]
 max_amp = max(absolutes)
 
@@ -280,5 +341,5 @@ with open("amplitude.txt", "w") as amplitude_f:
     for val in absolutes:
         amplitude_f.write("{}\n".format(val / max_amp))
 with open("phase.txt", "w") as phase_f:
-    for val in optimized_values:
+    for val in smoothed:
         phase_f.write("{}\n".format(np.angle(val)))
