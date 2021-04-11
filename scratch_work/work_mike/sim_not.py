@@ -423,7 +423,7 @@ def run_main_not():
     #     for val in optimized_values:
     #         phase_f.write("{}\n".format(np.angle(val)))
 
-    unsmoothed_amp_phase = np.stack((absolutes,np.angle(optimized_values)),axis=1)
+    unsmoothed_amp_phase = np.stack((absolutes / max_amp,np.angle(optimized_values)),axis=1)
 
     print(unsmoothed_amp_phase.shape)
 
