@@ -268,26 +268,64 @@ print("NOT Gate Error: " + str(not_error))
 
 # In[9]:
 
-# fig = plt.figure()
-# plot_controls(
-#     fig,
-#     controls={
-#         "$\\Omega$": optimized_values,
-#     }, polar=False)
-# plt.show()
-
+smoothed_r = []
+smoothed_i = []
 smoothed = []
+org_t = []
+sth_t = []
+count = 0
 for i in range(len(optimized_values)):
     if i == 0:
+        smoothed_r += [optimized_values [i].real]
+        smoothed_i += [optimized_values [i].imag]
         smoothed += [optimized_values [i]]
-        smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
+
+        smoothed_r += [(optimized_values [i].real + optimized_values [i + 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i + 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        org_t += [count]
+        sth_t += [count, count + 1]
+        count += 2
     elif i == len(optimized_values) - 1:
-        smoothed += [(optimized_values [i - 1] + optimized_values [i]) / 2]
+        smoothed_r += [(optimized_values [i].real + optimized_values [i - 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i - 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        smoothed_r += [optimized_values [i].real]
+        smoothed_i += [optimized_values [i].imag]
         smoothed += [optimized_values [i]]
+
+        sth_t += [count, count + 1]
+        org_t += [count + 1]
+        count += 2
     else:
-        smoothed += [(optimized_values [i - 1] + optimized_values [i]) / 2]
+        smoothed_r += [(optimized_values [i].real + optimized_values [i - 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i - 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        smoothed_r += [optimized_values [i].real]
+        smoothed_i += [optimized_values [i].imag]
         smoothed += [optimized_values [i]]
-        smoothed += [(optimized_values [i] + optimized_values [i + 1]) / 2]
+
+        smoothed_r += [(optimized_values [i].real + optimized_values [i + 1].real) / 2]
+        smoothed_i += [(optimized_values [i].imag + optimized_values [i + 1].imag) / 2]
+        smoothed += smoothed_r [-1] + 1j * smoothed_i [-1]
+
+        sth_t += [count, count + 1, count + 2]
+        org_t += [count + 1]
+        count += 3
+    print(smoothed_r [-3:])
+print(len(smoothed_r))
+
+fig = plt.figure()
+plt.title('Reals Smoothing')
+plt.xlabel('Segment')
+plt.ylabel('Real Component')
+plt.grid(True)
+# plt.plot(org_t, [segment.real for segment in optimized_values], color='red', label="org")
+plt.plot(sth_t, smoothed_r, color='green', label="sth")
+plt.show()
 
 # group = (segment_count // 256)
 # smoothed = []

@@ -169,8 +169,8 @@ ideal_h_gate = (1 / np.sqrt(2)) * np.array([[1, 1], [1, -1]])
 
 with qctrl.create_graph() as graph:
     # Create optimizable modulus and phase.
-    values = qctrl.operations.bounded_optimization_variable(
-        count=segment_count, lower_bound=0, upper_bound=1,
+    values = qctrl.operations.anchored_difference_bounded_variables(
+        count=segment_count, lower_bound=0, upper_bound=1, difference_bound=0.05,
     ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
         count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
     ))
@@ -233,6 +233,7 @@ optimization_result = qctrl.functions.calculate_optimization(
     cost_node_name="infidelity",
     output_node_names=["Omega"],
     graph=graph,
+    optimization_count=256,
 )
 
 # In[6]:
