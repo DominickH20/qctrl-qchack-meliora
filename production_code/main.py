@@ -25,17 +25,23 @@ def main(circuit):
     }
 
     # Run on the quantum computer
-    repetitions, experiment_results = real_q.run_on_q([waves_list, waves_list, waves_list], params)
+    controls = [waves_list, waves_list, waves_list]
+    repetitions, experiment_results = real_q.run_on_q(controls, params)
 
-    for repetition_count, measurement_counts in zip(
-        repetitions, experiment_results.measurements
-    ):
-        p0 = measurement_counts.count(0) / params ["shot_count"]
-        p1 = measurement_counts.count(1) / params ["shot_count"]
-        p2 = measurement_counts.count(2) / params ["shot_count"]
-        print(
-            f"With {repetition_count:2d} repetitions: P(|0>) = {p0:.2f}, P(|1>) = {p1:.2f}, P(|2>) = {p2:.2f}"
-        )
+    repetitions = np.split(np.array(repetitions), len(controls))
+    measurements = np.split(np.array(experiment_results.measurements), len(controls))
+    for i in range(len(repetitions)):
+        print("Control # {}".format(i + 1))
+        for repetition_count, measurement_counts in zip(
+            repetitions [i], measurements [i]
+        ):
+            measurement_counts = list(measurement_counts)
+            p0 = measurement_counts.count(0) / params ["shot_count"]
+            p1 = measurement_counts.count(1) / params ["shot_count"]
+            p2 = measurement_counts.count(2) / params ["shot_count"]
+            print(
+                f"With {repetition_count:2d} repetitions: P(|0>) = {p0:.2f}, P(|1>) = {p1:.2f}, P(|2>) = {p2:.2f}"
+            )
 
 # Entry point for program
 if __name__ == "__main__":
