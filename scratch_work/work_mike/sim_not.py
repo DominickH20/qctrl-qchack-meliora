@@ -380,7 +380,7 @@ def run_main_not():
     #     for val in smoothed_phase:
     #         sphase_f.write("{}\n".format(np.angle(val)))
 
-    smoothed_amp_phase = np.stack((smoothed_amp,smoothed_phase),axis=1)
+    smoothed_amp_phase = np.stack((np.absolute(smoothed_amp),np.angle(smoothed_phase)),axis=1)
 
     print(smoothed_amp_phase.shape)
 
