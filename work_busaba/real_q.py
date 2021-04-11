@@ -33,7 +33,7 @@ max_drive_amplitude = 2 * np.pi * 20                  # MHz
 control_count = 1
 segment_count = 64
 duration = 5 * np.pi / (max_drive_amplitude) * 1000   # Convert to ns
-shot_count = 32
+shot_count = 4096
 
 
 # In[3]:

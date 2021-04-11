@@ -157,9 +157,8 @@ n = np.diag([0, 1])
 initial_state = np.array([[1], [0]])
 
 # Extra constants used for optimization
-# control_count = 5
-segment_count = 64 # 16
-duration = 5 * np.pi / (max_drive_amplitude) # 30.0
+segment_count = 1024
+duration = 5 * np.pi / (max_drive_amplitude)
 ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
 
@@ -252,8 +251,6 @@ plt.show()
 # Test optimized pulse on more realistic qubit simulation
 
 optimized_values = np.array([segment["value"] for segment in optimization_result.output["Omega"]])
-print("Optimized Values:")
-print(optimized_values)
 result = simulate_more_realistic_qubit(duration=duration, values=optimized_values, shots=1024, repetitions=1)
 
 # In[8]:
@@ -271,9 +268,25 @@ print("NOT Gate Error: " + str(not_error))
 
 # In[9]:
 
+group = (segment_count // 256)
+smoothed = []
+# Smooth values
+for i in range(len(optimized_values) // group):
+    index = i * group
+    avg_r = 0
+    avg_i = 0
+    for j in range(index, index + group):
+        avg_r += optimized_values [j].real
+        avg_i += optimized_values [j].imag
+    avg_r /= group
+    avg_i /= group
+    smoothed += [avg_r + 1j * avg_i]
+
+# In[10]:
+
 # Normalizing the amplitudes
 absolutes = []
-for val in optimized_values:
+for val in smoothed:
     absolutes += [np.absolute(val)]
 max_amp = max(absolutes)
 
@@ -282,5 +295,5 @@ with open("amplitude.txt", "w") as amplitude_f:
     for val in absolutes:
         amplitude_f.write("{}\n".format(val / max_amp))
 with open("phase.txt", "w") as phase_f:
-    for val in optimized_values:
+    for val in smoothed:
         phase_f.write("{}\n".format(np.angle(val)))
