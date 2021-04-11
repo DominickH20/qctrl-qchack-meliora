@@ -50,7 +50,7 @@ def QCTRL_loss(controls, params):
 
 
 #initialize parameters for SEARCH
-gate_type = "NOT" #H or NOT
+gate_type = "H" #"H" or "NOT"
 seed = load_seed(gate_type+"_START_S_BEST.npy") #load_seed(gate_type+"_START_U.npy")
 segment_count = seed.shape[0]
 search_params = {
@@ -60,9 +60,9 @@ search_params = {
         "amp_sd": .1,
         "ph_sd": .6,
     },
-    "iterations": 20,
+    "iterations": 35,
     "population size": 10, #must be even!!
-    "crossover prob": 0.4,
+    "crossover prob": 0.5,
     "mutation prob amp": 1/(segment_count*2),
     "mutation prob phase": 1/(segment_count*2)
 }
@@ -72,7 +72,7 @@ max_drive_amplitude = 2 * np.pi * 20                       # MHz
 loss_params = {
     "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
     "shot_count": 1024,
-    "verbose": False,
+    "verbose": True,
     "circuit": gate_type
 }
 
