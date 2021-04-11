@@ -413,6 +413,8 @@ def run_main_not():
         absolutes += [np.absolute(val)]
     max_amp = max(absolutes)
 
+    absolutes = absolutes / max_amp
+
 
 
     # Write parameters to file

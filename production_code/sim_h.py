@@ -413,6 +413,7 @@ def run_main_h ():
     for val in optimized_values:
         absolutes += [np.absolute(val)]
     max_amp = max(absolutes)
+    absolutes = absolutes / max_amp
 
     # Write parameters to file
 
