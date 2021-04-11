@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from qctrlvisualizer import get_qctrl_style, plot_controls
 import jsonpickle.ext.numpy as jsonpickle_numpy
 jsonpickle_numpy.register_handlers()
 import jsonpickle
@@ -50,7 +50,7 @@ def QCTRL_loss(controls, params):
 
 
 #initialize parameters for SEARCH
-gate_type = "H" #H or NOT
+gate_type = "NOT" #H or NOT
 seed = load_seed(gate_type+"_START_S.npy") #load_seed(gate_type+"_START_U.npy")
 segment_count = seed.shape[0]
 search_params = {
@@ -60,9 +60,9 @@ search_params = {
         "amp_sd": .1,
         "ph_sd": .6,
     },
-    "iterations": 1,
+    "iterations": 100,
     "population size": 10, #must be even!!
-    "crossover prob": 0.1,
+    "crossover prob": 0.4,
     "mutation prob amp": 1/(segment_count*2),
     "mutation prob phase": 1/(segment_count*2)
 }
@@ -71,7 +71,7 @@ search_params = {
 max_drive_amplitude = 2 * np.pi * 20                       # MHz
 loss_params = {
     "duration": 5 * np.pi / (max_drive_amplitude) * 1000,  # Convert to ns
-    "shot_count": 10,
+    "shot_count": 1024,
     "verbose": False,
     "circuit": gate_type
 }
@@ -96,3 +96,15 @@ json_out = {
 json_encode = jsonpickle.encode(json_out)
 with open(gate_type.lower()+"_gate_pulse.json", 'w') as file:
     file.write(json_encode)
+
+#plot our pulse!
+plot_controls(
+    figure=plt.figure(),
+    controls={
+        "$\Omega$": [
+            {"duration": json_out["duration"] / segment_count / 1e9, "value": value}
+            for value in json_out["values"]
+        ]
+    },
+)
+plt.show()

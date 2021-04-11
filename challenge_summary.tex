@@ -2,6 +2,8 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{amsmath}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage[margin=1in]{geometry}
 \newcommand{\suchthat}{\;\ifnum\currentgrouptype=16 \middle\fi|\;}
 \renewcommand{\thesubsection}{\thesection (\alph{subsection})}
 
@@ -11,5 +13,88 @@
 
 \begin{document}
 \maketitle
+
+\section{Introduction}
+In this project we take a two stage approach to finding optimal pulses for the two gates $(H, NOT)$.
+For information on how to run the code, please view our \textbf{README.md}. We first use the more realistic
+simulation provided to gather candidate \textit{seed} solutions to begin our learning process. The intuition
+here is that the seed solutions from the simulation that perform okay on the real qubit, have a good 
+chance of being fine tuned to perform great on the real qubit. We test 7 quantum optimal control solutions 
+(optimal in the context of the sim) and then pick the best one in terms of real qubit performance. 
+This best pulse initialization is then fed into
+a gaussian step genetic algorithm. This algorithm is guaranteed only to improve upon the performance
+of the \textit{seed}. There is more on both of these methods in the following two sections.
+
+
+\section{First Step: Quantum Optimum Control Optimization with Sinc Interpolation}
+The scripts sim\_h.py and sim\_not.py use a similar approach to the twitch webinar to utilize the more 
+realistic model of the qubit to create an optimal pulse shape for the $(H, NOT)$ logical gates 
+respectively. We found that while it was fairly trivial to generate a pulse that would easily satisfy 
+the model, this proposed pulse frequently not very physically viable. Specifically, it would have a phase 
+and amplitude that oscillated at incredibly fast rates. After experimenting with various different smoothing 
+algorithms and parameters for the optimization, we settled on a method that would produce a more physically 
+feasible pulse shape. 
+
+We did this with a combination of two modifications to the method demonstrated in the 
+Twitch stream. First, we changed the definition of the amplitude function in the optimization from a bounded\_
+optimization\_variable to an anchored\_difference\_bounded\_variables and added a difference\_bound constraint. 
+This ensured that between the adjacent segments, the amplitude of the pulse would not change by more than a 
+small tunable parameter. This made the pulse amplitude function more realistic and well behaved. However, 
+this still left the phase as rapidly oscillating and the amplitude as having sharp peaks/troughs. To fix 
+this, we purposely had the optimizer optimize over a relatively small number of segments and then upscaled 
+it by using a sinc (aka $\sin(\pi * x) / (\pi * x))$ function interpolation algorithm onto the amplitude. This 
+smoothed out the peaks and valleys of the amplitude function, making it a more natural loooking function. 
+The rapidly changing phase problem is also mitigated by this because the phase is simply copied n times for 
+an upscaling factor of n. This increases the amount of time that the microwave pulse is at a given phase. 
+
+To validate that the interpolated pulse function is still valid for the more realistic simulation, we plug 
+the smoothed pulse back into this simulation and ensure that the error is still relatively small. By 
+tuning the number of segments, the factor of upscaling and the amplitude difference\_bound constraint, 
+we reliably errors on the real qubit within ~5-10\%. This provided us with a good starting point to plug 
+into our Quantum Learning Control Using Genetic Algorithm Postprocessing.
+
+\section{Second Step: Quantum Learning Control Using Genetic Algorithm Postprocessing}
+\begin{algorithm}[H]
+\SetAlgoLined
+\KwResult{(best pulse, best loss)}
+    seed\_pulse = quantum\_opt\_control\_best\;
+    population = P * [ seed\_pulse ] (shape: P * segment\_count * 2)\;
+    best, best\_loss = 0, 3\;
+    \For{1...N}{
+        scores = Loss(population)\;
+        parents = select(population, scores)\;
+        children = []\;
+        \For{(parent1, parent2) in parents}{
+            child1, child2 = cross(parent1, parent2)\;
+            child1.mutate(N(0,s1))\;
+            child2.mutate(N(0,s2))\;
+            children.append(child1)\;
+            children.append(child2)\;
+        }
+        population = children\;
+    }
+    \Return (best, best\_loss)
+\caption{Genetic Gaussian Search}
+\end{algorithm}
+
+Above, you can see our genetic gaussian search algorithm. This is essentially a genetic algorithm
+but with the mutation step consisting of a gaussian error update. Whenever two parents are crossed,
+there is a chance that the amplitude and phase at some point along the segment count axis will be swapped
+(with some probability)
+between the two parents as they form two children. These two children then each have a chance to incur 
+a gaussian update (again with some probability) to one or both of their amplitude and phase. These updated
+children are then used to create a new population for which fitness is evaluated. Each pulse is
+converted into a complex representation (as opposed to amplitude and phase) and then fed into the 
+qubit. The probabilties of a correct measurement over some number of shots are computed and then fed into
+a fitness function.
+
+Fitness is evaluated with a loss function as follows:
+$$L(p) = \sum_{r=1}^R \frac{(o(p)_0 - t_0)^2}{r} + \frac{(o(p)_1 - t_1)^2}{r}$$
+Where $R$ is the number of repetitions, $t_0, t_1$ are the true gate values in states 0 and 1, and $o(p)_0, o(p)_1$
+are the observed probabilities for states 0 and 1 when firing the pulse onto the real qubit. This is used 
+to assess the fit of each pulse. We do not consider duration as a trainable parameter.
+
+
+\section{Results and Conclusions}
 
 \end{document}
