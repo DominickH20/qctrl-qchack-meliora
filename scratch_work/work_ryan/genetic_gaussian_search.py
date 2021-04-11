@@ -121,7 +121,37 @@ if __name__ == '__main__':
         "mutation prob amp": 1/(segment_count*2),
         "mutation prob phase": 1/(segment_count*2)
     }
+    params = {
+        "gaussian_params" : {
+            "amp_mean":3,
+            "ph_mean": 5,
+            "amp_sd": 1,
+            "ph_sd": 1,
+        },
+        "iterations": 200,
+        "population size": 100,
+        "crossover prob": 0.9,
+        "mutation prob amp": 1/(segment_count*2),
+        "mutation prob phase": 1/(segment_count*2)
+    }
+
 
     best, score = genetic_gaussian_search(loss_func, seed, params)
     print('Done! THE BEST IS:')
     print('f(%s \n) = %f' % (np_2d_print(best), score))
+
+def f():
+
+    return {
+        "gaussian_params" : {
+            "amp_mean":3,
+            "ph_mean": 5,
+            "amp_sd": 1,
+            "ph_sd": 1,
+        },
+        "iterations": 200,
+        "population size": 80,
+        "crossover prob": 0.9,
+        "mutation prob amp": 1/(segment_count*2),
+        "mutation prob phase": 1/(segment_count*2)
+    }

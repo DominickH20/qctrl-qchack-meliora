@@ -47,9 +47,11 @@ def get_best():
       best_not = nloss
       overwriteNOT()
 
-
-  h_waves_list = np.load("H_START_S_BEST.npy")
-  not_waves_list = np.load("NOT_START_S_BEST.npy")
+    try:
+        h_waves_list = np.load("H_START_S_BEST.npy")
+        not_waves_list = np.load("NOT_START_S_BEST.npy")
+    except:
+        return
 
   return (h_waves_list, not_waves_list)
 
