@@ -5,6 +5,7 @@
 *.synctex.gz
 .vscode
 .vscode/*
+**pycache**
 
 .env
 examples/.env
