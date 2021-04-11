@@ -7,10 +7,14 @@ import sim_not
 import numpy as np
 import real_q
 
-def get_best():
-  """ Returns the most promising initial values for the NOT and H gates.
 
-  """
+from dotenv import dotenv_values
+config = dotenv_values(".env")
+email=config['EMAIL']
+password=config['PW']
+
+def get_best():
+  """ Returns the most promising initial wave lengths for the NOT and H gates. """
 
   best_h = 1
   best_not = 0
@@ -18,9 +22,9 @@ def get_best():
   for i in range(runs):
     
     # Run Sim-H
-    sim_h.run_main_h(best_h)[0]
+    sim_h.run_main_h()[0]
     # Run Sim-NOT
-    sim_not.run_main_not(best_not)[0]
+    sim_not.run_main_not()[0]
 
     hloss = run_waves("H")
     nloss = run_waves("N")
@@ -35,6 +39,7 @@ def get_best():
       best_not = nloss
       overwriteNOT()
 
+
   h_waves_list = np.load("H_START_S_BEST.npy")
   not_waves_list = np.load("NOT_START_S_BEST.npy")
 
@@ -44,9 +49,9 @@ def run_waves(circuit):
     # Make sure circuit name is valid and load data
     circuit = circuit.upper()
     if circuit == "H":
-        waves_list = np.load("H_START.npy")
+        waves_list = np.load("H_START_S.npy")
     elif circuit == "N":
-        waves_list = np.load("N_START.npy")
+        waves_list = np.load("N_START_S.npy")
     else:
         print("Invalid circuit ID: {}".format(circuit))
         exit(1)
@@ -111,4 +116,4 @@ def overwriteH():
       # write content to second file
       secondfile.write(line)
   
-get_best()
+# get_best()
