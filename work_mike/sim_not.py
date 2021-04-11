@@ -423,7 +423,7 @@ initial_state = np.array([[1], [0]])
 
 # Extra constants used for optimization
 # control_count = 5
-segment_count = 16 # 16
+segment_count = 64 # 16
 duration = 5 * np.pi / (max_drive_amplitude) # 30.0
 ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
@@ -434,8 +434,8 @@ ideal_not_gate = np.array([[0, -1j], [-1j, 0]])
 
 with qctrl.create_graph() as graph:
     # Create optimizable modulus and phase.
-    values = qctrl.operations.bounded_optimization_variable(
-        count=segment_count, lower_bound=0, upper_bound=1,
+    values = qctrl.operations.anchored_difference_bounded_variables(
+        count=segment_count, lower_bound=0, upper_bound=1, difference_bound = 0.1
     ) * qctrl.operations.exp(1j * qctrl.operations.unbounded_optimization_variable(
         count=segment_count, initial_lower_bound=0, initial_upper_bound=2*np.pi,
     ))
@@ -536,26 +536,28 @@ print(ideal_not_gate)
 print("NOT Gate Error: " + str(not_error))
 
 # In[81]
-smoothed_real = upsample(optimized_values.real,2)
-smoothed_imag = upsample(optimized_values.imag,2)
+# smoothed_real = upsample(optimized_values.real,2)
+# smoothed_imag = upsample(optimized_values.imag,2)
+smoothed_amp = upsample(np.absolute(optimized_values),2)
 
-
-smoothed = smoothed_real + 1j * smoothed_imag
-
+smoothed_phase = []
+for i in optimized_values:
+    smoothed_phase += [i]
+    smoothed_phase += [i]
 # Normalizing the amplitudes
-absolutes = []
-for val in smoothed:
-    absolutes += [np.absolute(val)]
-max_amp = max(absolutes)
+max_amp = max(smoothed_amp)
 
-smoothed = np.absolute(smoothed) / max_amp * np.exp(1j * smoothed.imag)
+smoothed_amp = smoothed_amp / max_amp
+
+# smoothed = smoothed_real + 1j * smoothed_imag
+smoothed = smoothed_amp * np.exp(1j*np.angle(smoothed_phase))
 
 
 with open("samplitude.txt", "w") as samplitude_f:
-    for val in smoothed_real:
+    for val in smoothed_amp:
         samplitude_f.write("{}\n".format(val))
 with open("sphase.txt", "w") as sphase_f:
-    for val in smoothed_imag:
+    for val in smoothed_phase:
         sphase_f.write("{}\n".format(np.angle(val)))
 
 result = simulate_more_realistic_qubit(duration=duration, values=smoothed, shots=1024, repetitions=1)

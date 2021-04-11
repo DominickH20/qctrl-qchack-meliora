@@ -31,7 +31,7 @@ qctrl = Qctrl()
 
 max_drive_amplitude = 2 * np.pi * 20                  # MHz
 control_count = 1
-segment_count = 16
+segment_count = 128
 duration = 5 * np.pi / (max_drive_amplitude) *1000   # Convert to ns
 shot_count = 1024
 
