@@ -9,8 +9,8 @@ def np_2d_print(arr):
     final_str = "\n Amplitudes: " + amps + "\n Phases: " + phases
     return final_str
 
-def loss_func(x):
-    return x.sum()
+def loss_func(x, params):
+    return [a.sum() for a in x]
 
 #selection
 def selection(pop, scores, k=3):
@@ -57,9 +57,9 @@ def mutation(values, p_mut_amp, p_mut_phase, gaussian_params):
                 values[i][0] = 0
 
             #check for OOB - Phase
-            if values[i][1] > 2*np.pi: 
+            if (values[i][1] > 2*np.pi): 
                 values[i][1] = values[i][1] - np.floor(values[i][1]/(2*np.pi))*2*np.pi
-            if values[i][1] < 0: 
+            if (values[i][1] < 0): 
                 values[i][1] = values[i][1] - np.floor(values[i][1]/(2*np.pi))*2*np.pi
 
 
@@ -124,6 +124,8 @@ if __name__ == '__main__':
         "mutation prob phase": 1/(segment_count*2)
     }
 
-    best, score = genetic_gaussian_search(loss_func, seed, params)
+    loss_params = {}
+
+    best, score = genetic_gaussian_search(loss_func, seed, params, loss_params)
     print('Done! THE BEST IS:')
     print('f(%s \n) = %f' % (np_2d_print(best), score))

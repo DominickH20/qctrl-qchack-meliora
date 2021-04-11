@@ -41,7 +41,8 @@ def QCTRL_loss(controls, params):
 
 
 #initialize parameters
-seed = load_seed("H_START_S.npy") #load_seed("NOT_START_U.npy")
+gate_type = "H"
+seed = load_seed(gate_type+"_START_S.npy") #load_seed(gate_type+"_START_U.npy")
 segment_count = seed.shape[0]
 search_params = {
     "gaussian_params" : {
